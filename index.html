@@ -109,12 +109,14 @@
                     const workbook = XLSX.read(data, {type: 'binary'});
                     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     
+                    // Extraer datos estructurados para buscar luego
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
                     if (jsonData.length > 0) {
-                        excelHeaders = jsonData[0]; 
-                        excelDataRows = jsonData.slice(1); 
+                        excelHeaders = jsonData[0]; // La fila 1 (Ej: "Número", "Bailarina", "Obra")
+                        excelDataRows = jsonData.slice(1); // El resto de las filas
                     }
 
+                    // Generar vista previa
                     const htmlTable = XLSX.utils.sheet_to_html(worksheet);
                     document.getElementById('excel-preview').innerHTML = htmlTable;
                     document.getElementById('excel-preview').style.display = 'block';
@@ -125,8 +127,9 @@
 
         // --- FUNCIÓN PARA BUSCAR EL NÚMERO EN EL EXCEL ---
         window.buscarEnExcel = function(num) {
-            if (excelDataRows.length === 0) return `Número: ${num}`;
+            if (excelDataRows.length === 0) return `Número: ${num}`; // Si no hay excel cargado
 
+            // Buscar la fila donde la primera columna coincida con el número hablado
             const fila = excelDataRows.find(row => String(row[0]).trim() === String(num).trim());
 
             if (fila) {
@@ -136,7 +139,7 @@
                         detalles.push(`${excelHeaders[i]}: ${fila[i]}`);
                     }
                 }
-                return detalles.join(", "); 
+                return detalles.join(", "); // Ej: "Número: 21, Bailarina: Pepa, Obra: Las maravillas"
             } else {
                 return `Número: ${num} (No encontrado en Excel)`;
             }
@@ -147,8 +150,9 @@
             const entry = logEntries.find(e => e.id === id);
             if(entry) {
                 entry.num = nuevoValor;
-                entry.fullData = window.buscarEnExcel(nuevoValor); 
+                entry.fullData = window.buscarEnExcel(nuevoValor); // Re-calcula la fila completa
                 
+                // Actualiza visualmente el texto verde
                 const spanDatos = document.getElementById('data-' + id);
                 if(spanDatos) spanDatos.innerText = entry.fullData;
             }
@@ -181,7 +185,7 @@
                     
                     numbers.forEach(num => {
                         const entryId = Date.now() + Math.floor(Math.random() * 1000);
-                        const datosCompletos = window.buscarEnExcel(num); 
+                        const datosCompletos = window.buscarEnExcel(num); // Cruce automático de datos
                         
                         logEntries.push({ id: entryId, time: time, num: num, raw: result, fullData: datosCompletos });
                         
@@ -248,10 +252,12 @@
             const timeApp = document.getElementById('timeApp').value;
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
+            // CSV Header - Ahora con columna 'Datos_Completos'
             let csvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion\n";
             
             logEntries.forEach(e => { 
                 let tiempoCamara = aplicarDesfase(e.time, desfaseMs);
+                // Escapamos las comillas dobles en caso de que los datos del excel las contengan
                 let datosSeguros = e.fullData.replace(/"/g, '""'); 
                 
                 csvContent += `${e.time},${tiempoCamara},${e.num},"${datosSeguros}","${e.raw}"\n`; 
