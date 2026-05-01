@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Podium Audio Log - Smart Sync</title>
+    <title>Auxilior Photo - Smart Sync v1.2.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; margin: 0; }
         .header { margin-bottom: 20px; }
         .clock { font-size: 3em; font-weight: bold; color: #00ff88; margin: 10px auto; border: 2px solid #333; padding: 10px 20px; border-radius: 10px; display: inline-block; letter-spacing: 2px; background: #000; }
         
+        .version-badge { font-size: 0.45em; background: #333; color: #fff; padding: 4px 10px; border-radius: 20px; vertical-align: middle; border: 1px solid #555; margin-left: 10px; }
+
         .ref-container { width: 100%; max-width: 600px; background: #1e1e1e; padding: 15px; border-radius: 8px; margin: 0 auto 15px auto; border: 1px solid #333; text-align: left; box-sizing: border-box; }
         .ref-title { font-size: 0.85em; color: #aaa; margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 1px; }
         
@@ -28,10 +30,12 @@
         .stop { background: #333; color: white; border: 2px solid #e50914; }
         .export { background: #007bff; color: white; margin-top: 20px; }
         
+        .aviso-fijo { color: #ffcc00; background: #1a1a1a; border: 1px dashed #ffcc00; padding: 10px; border-radius: 8px; margin: 0 auto 15px auto; max-width: 600px; font-size: 0.9em; text-align: center; }
+
         #log { text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; height: 35vh; overflow-y: auto; margin: 15px auto; border: 1px solid #333; width: 100%; max-width: 600px; box-sizing: border-box; }
         .entry { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 10px; padding: 12px; border-radius: 6px; border-left: 4px solid #ffcc00; }
         .entry-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
-        .time { color: #888; font-family: monospace; font-size: 1em; }
+        .time { color: #888; font-family: monospace; font-size: 0.85em; }
         
         .edit-num { background: #000; color: #ffcc00; border: 1px dashed #666; font-size: 1.3em; font-weight: bold; width: 70px; text-align: center; padding: 8px; border-radius: 4px; }
         .edit-num:focus { border-color: #ffcc00; outline: none; background: #111; }
@@ -46,19 +50,9 @@
 <body>
 
     <div class="header">
-        <h2 style="margin: 0; color: #fff;">PODIUM <span style="color:#ffcc00">Logger</span></h2>
+        <h2 style="margin: 0; color: #fff;">AUXILIOR <span style="color:#ffcc00">Photo</span><span class="version-badge">v1.2.1</span></h2>
         <div id="clock" class="clock">00:00:00</div>
     </div>
-
-    <script>
-        setInterval(function() {
-            var date = new Date();
-            var hours = String(date.getHours()).padStart(2, '0');
-            var minutes = String(date.getMinutes()).padStart(2, '0');
-            var seconds = String(date.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').innerText = hours + ':' + minutes + ':' + seconds;
-        }, 1000);
-    </script>
 
     <div class="ref-container">
         <span class="ref-title">📁 1. Cargar Archivo de Excel/CSV (Orden del día)</span>
@@ -83,8 +77,12 @@
     <button id="startBtn" class="btn start">⏺ INICIAR GRABACIÓN</button>
     <button id="stopBtn" class="btn stop" style="display:none;">⏹ DETENER</button>
     
+    <div class="aviso-fijo">
+        ⚠️ AVISO: Recuerda bajar el volumen de tu teléfono a cero para evitar pitidos.
+    </div>
+
     <div id="log">
-        <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...<br><small>(Baja el volumen de tu teléfono a cero para evitar pitidos)</small></div>
+        <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...</div>
     </div>
 
     <button id="exportBtn" class="btn export">⬇ DESCARGAR CSV FINAL</button>
@@ -109,14 +107,12 @@
                     const workbook = XLSX.read(data, {type: 'binary'});
                     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                     
-                    // Extraer datos estructurados para buscar luego
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
                     if (jsonData.length > 0) {
-                        excelHeaders = jsonData[0]; // La fila 1 (Ej: "Número", "Bailarina", "Obra")
-                        excelDataRows = jsonData.slice(1); // El resto de las filas
+                        excelHeaders = jsonData[0]; 
+                        excelDataRows = jsonData.slice(1); 
                     }
 
-                    // Generar vista previa
                     const htmlTable = XLSX.utils.sheet_to_html(worksheet);
                     document.getElementById('excel-preview').innerHTML = htmlTable;
                     document.getElementById('excel-preview').style.display = 'block';
@@ -127,9 +123,8 @@
 
         // --- FUNCIÓN PARA BUSCAR EL NÚMERO EN EL EXCEL ---
         window.buscarEnExcel = function(num) {
-            if (excelDataRows.length === 0) return `Número: ${num}`; // Si no hay excel cargado
+            if (excelDataRows.length === 0) return `Número: ${num}`; 
 
-            // Buscar la fila donde la primera columna coincida con el número hablado
             const fila = excelDataRows.find(row => String(row[0]).trim() === String(num).trim());
 
             if (fila) {
@@ -139,7 +134,7 @@
                         detalles.push(`${excelHeaders[i]}: ${fila[i]}`);
                     }
                 }
-                return detalles.join(", "); // Ej: "Número: 21, Bailarina: Pepa, Obra: Las maravillas"
+                return detalles.join(", "); 
             } else {
                 return `Número: ${num} (No encontrado en Excel)`;
             }
@@ -150,9 +145,8 @@
             const entry = logEntries.find(e => e.id === id);
             if(entry) {
                 entry.num = nuevoValor;
-                entry.fullData = window.buscarEnExcel(nuevoValor); // Re-calcula la fila completa
+                entry.fullData = window.buscarEnExcel(nuevoValor); 
                 
-                // Actualiza visualmente el texto verde
                 const spanDatos = document.getElementById('data-' + id);
                 if(spanDatos) spanDatos.innerText = entry.fullData;
             }
@@ -174,6 +168,13 @@
             recognition.interimResults = false;
             recognition.lang = 'es-PY';
 
+            // ESTA ES LA FUNCIÓN NUEVA PARA DETECTAR EL ERROR DEL MÓVIL
+            recognition.onerror = function(event) {
+                alert("Atención, el móvil detuvo la grabación. Error: " + event.error);
+                document.getElementById('startBtn').style.display = 'block';
+                document.getElementById('stopBtn').style.display = 'none';
+            };
+
             recognition.onresult = function(event) {
                 const result = event.results[event.results.length - 1][0].transcript;
                 const d = new Date();
@@ -184,17 +185,28 @@
                     if(logEntries.length === 0) logDiv.innerHTML = ''; 
                     
                     numbers.forEach(num => {
+                        // Al escuchar un número nuevo, cierra el tiempo del anterior
+                        if (logEntries.length > 0) {
+                            let lastEntry = logEntries[logEntries.length - 1];
+                            if (!lastEntry.endTime) {
+                                lastEntry.endTime = time;
+                                let uiTime = document.getElementById('time-' + lastEntry.id);
+                                if(uiTime) uiTime.innerText = lastEntry.startTime + " a " + lastEntry.endTime;
+                            }
+                        }
+
                         const entryId = Date.now() + Math.floor(Math.random() * 1000);
-                        const datosCompletos = window.buscarEnExcel(num); // Cruce automático de datos
+                        const datosCompletos = window.buscarEnExcel(num); 
                         
-                        logEntries.push({ id: entryId, time: time, num: num, raw: result, fullData: datosCompletos });
+                        // Guardamos con startTime, endTime vacío
+                        logEntries.push({ id: entryId, startTime: time, endTime: "", num: num, raw: result, fullData: datosCompletos });
                         
                         const div = document.createElement('div');
                         div.className = 'entry';
                         div.id = 'entry-' + entryId;
                         div.innerHTML = `
                             <div class="entry-left">
-                                <span class="time">${time}</span>
+                                <span class="time" id="time-${entryId}">${time}</span>
                                 <input type="number" class="edit-num" value="${num}" onchange="actualizarNumero(${entryId}, this.value)">
                                 <div style="display:flex; flex-direction:column; text-align:left;">
                                     <span class="raw-text">"${result}"</span>
@@ -209,7 +221,11 @@
             };
 
             let isRecording = false;
-            recognition.onend = function() { if(isRecording) { try { recognition.start(); } catch(e) {} } };
+            recognition.onend = function() { 
+                if(isRecording) { 
+                    try { recognition.start(); } catch(e) {} 
+                } 
+            };
 
             document.getElementById('startBtn').onclick = function() {
                 try {
@@ -217,17 +233,32 @@
                     isRecording = true;
                     document.getElementById('startBtn').style.display = 'none';
                     document.getElementById('stopBtn').style.display = 'block';
-                } catch(e) { alert("Error. Recuerda usar Chrome y dar permisos."); }
+                } catch(e) { 
+                    alert("Error al iniciar el motor de voz. Intenta refrescar la página."); 
+                }
             };
 
             document.getElementById('stopBtn').onclick = function() {
                 recognition.stop();
                 isRecording = false;
+                
+                // Al detener manualmente, cierra la última danza
+                if (logEntries.length > 0) {
+                    let lastEntry = logEntries[logEntries.length - 1];
+                    if (!lastEntry.endTime) {
+                        const d = new Date();
+                        const time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
+                        lastEntry.endTime = time;
+                        let uiTime = document.getElementById('time-' + lastEntry.id);
+                        if(uiTime) uiTime.innerText = lastEntry.startTime + " a " + lastEntry.endTime;
+                    }
+                }
+
                 document.getElementById('startBtn').style.display = 'block';
                 document.getElementById('stopBtn').style.display = 'none';
             };
         } else {
-            document.getElementById('startBtn').onclick = function() { alert("Tu navegador no soporta voz. Usa Chrome."); };
+            document.getElementById('startBtn').onclick = function() { alert("Tu navegador no soporta voz. Usa Chrome para Android o Safari para iOS."); };
         }
 
         // --- CÁLCULOS Y EXPORTACIÓN ---
@@ -239,7 +270,7 @@
         }
 
         function aplicarDesfase(horaStr, desfaseMs) {
-            if(desfaseMs === 0) return horaStr;
+            if(!horaStr || desfaseMs === 0) return horaStr || "";
             let d = new Date("1970-01-01T" + horaStr + "Z");
             d.setTime(d.getTime() + desfaseMs);
             return String(d.getUTCHours()).padStart(2, '0') + ':' + 
@@ -252,20 +283,21 @@
             const timeApp = document.getElementById('timeApp').value;
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
-            // CSV Header - Ahora con columna 'Datos_Completos'
-            let csvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion\n";
+            // CSV Header con columnas de Inicio y Fin utilizando separador de punto y coma (;)
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFFInicio_App;Inicio_Camara;Fin_App;Fin_Camara;Numero;Datos_Completos;Transcripcion\n";
             
             logEntries.forEach(e => { 
-                let tiempoCamara = aplicarDesfase(e.time, desfaseMs);
-                // Escapamos las comillas dobles en caso de que los datos del excel las contengan
+                let inicioC = aplicarDesfase(e.startTime, desfaseMs);
+                let finC = e.endTime ? aplicarDesfase(e.endTime, desfaseMs) : "";
+                
                 let datosSeguros = e.fullData.replace(/"/g, '""'); 
                 
-                csvContent += `${e.time},${tiempoCamara},${e.num},"${datosSeguros}","${e.raw}"\n`; 
+                csvContent += `${e.startTime};${inicioC};${e.endTime};${finC};${e.num};"${datosSeguros}";"${e.raw}"\n`; 
             });
             
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI(csvContent));
-            link.setAttribute("download", "PodiumLog_" + new Date().getTime() + ".csv");
+            link.setAttribute("download", "AuxiliorPhoto_Log_" + new Date().getTime() + ".csv");
             document.body.appendChild(link);
             link.click();
         };
