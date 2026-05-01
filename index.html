@@ -6,17 +6,15 @@
     <title>Podium Audio Log - Smart Sync</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; margin: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; margin: 0; overflow-x: hidden; }
         .header { margin-bottom: 20px; }
         .clock { font-size: 3em; font-weight: bold; color: #00ff88; margin: 10px auto; border: 2px solid #333; padding: 10px 20px; border-radius: 10px; display: inline-block; letter-spacing: 2px; background: #000; }
 
         .ref-container { width: 100%; max-width: 600px; background: #1e1e1e; padding: 15px; border-radius: 8px; margin: 0 auto 15px auto; border: 1px solid #333; text-align: left; box-sizing: border-box; }
         .ref-title { font-size: 0.85em; color: #aaa; margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 1px; }
 
-        .sheets-row { display: flex; gap: 10px; }
-        .sheets-input { flex-grow: 1; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 1em; box-sizing: border-box; }
-        .sheets-btn { background: #0f9d58; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-
+        .sheets-input { flex-grow: 1; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 1em; box-sizing: border-box; width: 100%; }
+        
         input[type="file"] { color: #fff; background: #000; padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box; border: 1px solid #444; }
         #excel-preview { margin-top: 10px; max-height: 150px; overflow-y: auto; background: #000; border: 1px solid #444; border-radius: 5px; display: none; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
@@ -30,17 +28,19 @@
         .export { background: #007bff; color: white; margin-top: 20px; }
 
         #log { text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; height: 35vh; overflow-y: auto; margin: 15px auto; border: 1px solid #333; width: 100%; max-width: 600px; box-sizing: border-box; }
-        .entry { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 10px; padding: 12px; border-radius: 6px; border-left: 4px solid #ffcc00; }
-        .entry-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
-        .time { color: #888; font-family: monospace; font-size: 1em; }
-        .time-box { display: flex; flex-direction: column; min-width: 90px; }
+        .entry { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 10px; padding: 10px; border-radius: 6px; border-left: 4px solid #ffcc00; gap: 10px; }
+        
+        .time-box { display: flex; flex-direction: column; min-width: 75px; flex-shrink: 0; text-align: left; }
+        .time { font-family: monospace; font-size: 0.85em; }
 
-        .edit-num { background: #000; color: #ffcc00; border: 1px dashed #666; font-size: 1.3em; font-weight: bold; width: 70px; text-align: center; padding: 8px; border-radius: 4px; }
+        .edit-num { background: #000; color: #ffcc00; border: 1px dashed #666; font-size: 1.2em; font-weight: bold; width: 55px; text-align: center; padding: 8px 4px; border-radius: 4px; flex-shrink: 0; }
         .edit-num:focus { border-color: #ffcc00; outline: none; background: #111; }
 
-        .raw-text { color: #aaa; font-size: 0.9em; font-style: italic; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .matched-data { color: #00ff88; font-size: 0.8em; font-weight: bold; margin-top: 5px; display: block; }
-        .delete-btn { background: transparent; border: none; color: #ff4444; font-size: 1.5em; cursor: pointer; padding: 5px 10px; }
+        .text-box { display: flex; flex-direction: column; text-align: left; flex-grow: 1; overflow: hidden; }
+        .raw-text { color: #aaa; font-size: 0.85em; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .matched-data { color: #00ff88; font-size: 0.8em; font-weight: bold; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .delete-btn { background: transparent; border: none; color: #ff4444; font-size: 1.5em; cursor: pointer; padding: 5px; flex-shrink: 0; }
 
         input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
@@ -90,7 +90,7 @@
         <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...<br><small>(Baja el volumen de tu teléfono a cero para evitar pitidos)</small></div>
     </div>
 
-    <button id="exportBtn" class="btn export">⬇ DESCARGAR CSV FINAL</button>
+    <button id="exportBtn" class="btn export">⬇ DESCARGAR SINCRONIZADO</button>
 
     <script>
         let logEntries = [];
@@ -172,7 +172,7 @@
             recognition.lang = 'es-PY';
 
             recognition.onresult = function(event) {
-                if (isPaused) return; // Si está en pausa, ignora el audio capturado
+                if (isPaused) return; 
 
                 const result = event.results[event.results.length - 1][0].transcript;
                 const d = new Date();
@@ -188,7 +188,7 @@
                         if (!lastEntry.endTime) {
                             lastEntry.endTime = time;
                             let finSpan = document.getElementById('fin-' + lastEntry.id);
-                            if(finSpan) finSpan.innerText = `Fin: ${time}`;
+                            if(finSpan) finSpan.innerText = `⏹ ${time}`;
                         }
                     }
 
@@ -196,23 +196,20 @@
                         const entryId = Date.now() + Math.floor(Math.random() * 1000);
                         const datosCompletos = window.buscarEnExcel(num);
 
-                        // Se guarda con startTime y endTime vacío
                         logEntries.push({ id: entryId, startTime: time, endTime: "", num: num, raw: result, fullData: datosCompletos });
 
                         const div = document.createElement('div');
                         div.className = 'entry';
                         div.id = 'entry-' + entryId;
                         div.innerHTML = `
-                            <div class="entry-left">
-                                <div class="time-box">
-                                    <span class="time" style="color:#00ff88; font-size:0.9em;">Inicio: ${time}</span>
-                                    <span class="time" id="fin-${entryId}" style="color:#ff4444; font-size:0.9em;">Fin: --:--:--</span>
-                                </div>
-                                <input type="number" class="edit-num" value="${num}" onchange="actualizarNumero(${entryId}, this.value)">
-                                <div style="display:flex; flex-direction:column; text-align:left;">
-                                    <span class="raw-text">"${result}"</span>
-                                    <span class="matched-data" id="data-${entryId}">${datosCompletos}</span>
-                                </div>
+                            <div class="time-box">
+                                <span class="time" style="color:#00ff88;">▶ ${time}</span>
+                                <span class="time" id="fin-${entryId}" style="color:#ff4444;">⏹ --:--:--</span>
+                            </div>
+                            <input type="number" class="edit-num" value="${num}" onchange="actualizarNumero(${entryId}, this.value)">
+                            <div class="text-box">
+                                <span class="raw-text">"${result}"</span>
+                                <span class="matched-data" id="data-${entryId}">${datosCompletos}</span>
                             </div>
                             <button class="delete-btn" onclick="eliminarRegistro(${entryId})">✖</button>
                         `;
@@ -242,10 +239,12 @@
                     this.innerText = '▶ REANUDAR (Hablar)';
                     this.style.background = '#444';
                     this.style.color = '#fff';
+                    this.style.border = '2px solid #666';
                 } else {
                     this.innerText = '⏸ PAUSAR (Música)';
                     this.style.background = '#ffcc00';
                     this.style.color = '#000';
+                    this.style.border = '2px solid #ffcc00';
                 }
             };
 
@@ -254,7 +253,6 @@
                 isRecording = false;
                 isPaused = false;
 
-                // Si se detiene manualmente, cerrar la última danza con la hora actual
                 if (logEntries.length > 0) {
                     let lastEntry = logEntries[logEntries.length - 1];
                     if (!lastEntry.endTime) {
@@ -262,7 +260,7 @@
                         const time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
                         lastEntry.endTime = time;
                         let finSpan = document.getElementById('fin-' + lastEntry.id);
-                        if(finSpan) finSpan.innerText = `Fin: ${time}`;
+                        if(finSpan) finSpan.innerText = `⏹ ${time}`;
                     }
                 }
 
@@ -296,45 +294,51 @@
             const timeApp = document.getElementById('timeApp').value;
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
-            let csvContent = "data:text/csv;charset=utf-8,";
-
             if (excelHeaders.length > 0) {
-                // Reconstruye el archivo tal cual entró, sumando las columnas de tiempo al final
-                let encabezados = excelHeaders.map(h => '"' + String(h).replace(/"/g, '""') + '"').join(";");
-                csvContent += encabezados + ';"Inicio_App";"Inicio_Camara";"Fin_App";"Fin_Camara"\n';
+                // Exportación nativa a XLSX/CSV respetando formato de ingreso exacto
+                let newData = [];
+                let newHeaders = [...excelHeaders, "Inicio_App", "Inicio_Camara", "Fin_App", "Fin_Camara"];
+                newData.push(newHeaders);
 
                 excelDataRows.forEach(row => {
                     let numStr = String(row[0] || "").trim();
-                    // Busca el último registro de log para este número
-                    let entry = logEntries.slice().reverse().find(e => String(e.num).trim() === numStr);
+                    let entry = [...logEntries].reverse().find(e => String(e.num).trim() === numStr);
 
-                    let rowStr = row.map(cell => '"' + String(cell !== undefined ? cell : "").replace(/"/g, '""') + '"').join(";");
-
+                    let newRow = [...row];
                     if (entry) {
                         let inicioC = aplicarDesfase(entry.startTime, desfaseMs);
                         let finC = entry.endTime ? aplicarDesfase(entry.endTime, desfaseMs) : "";
-                        rowStr += `;"${entry.startTime}";"${inicioC}";"${entry.endTime}";"${finC}"\n`;
+                        newRow.push(entry.startTime, inicioC, entry.endTime, finC);
                     } else {
-                        rowStr += `;"";"";"";""\n`; // Deja en blanco si no se bailó / anunció
+                        newRow.push("", "", "", ""); // Deja en blanco si no se bailó
                     }
-                    csvContent += rowStr;
+                    newData.push(newRow);
                 });
+
+                let ws = XLSX.utils.aoa_to_sheet(newData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Sincronizado");
+                
+                // Conserva la extensión original del archivo que subiste
+                let extension = loadedFileName.toLowerCase().endsWith(".csv") ? "csv" : "xlsx";
+                XLSX.writeFile(wb, "PodiumLog_Sincronizado." + extension);
+
             } else {
-                // Modo fallback si no subió excel (solo descarga el log)
-                csvContent += "Numero;Datos_Completos;Inicio_App;Inicio_Camara;Fin_App;Fin_Camara;Transcripcion\n";
+                // Fallback si no subiste archivo (usa punto y coma nativo)
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFFNumero;Datos_Completos;Inicio_App;Inicio_Camara;Fin_App;Fin_Camara;Transcripcion\n";
                 logEntries.forEach(e => {
                     let inicioC = aplicarDesfase(e.startTime, desfaseMs);
                     let finC = e.endTime ? aplicarDesfase(e.endTime, desfaseMs) : "";
                     let datosSeguros = e.fullData.replace(/"/g, '""');
                     csvContent += `${e.num};"${datosSeguros}";${e.startTime};${inicioC};${e.endTime};${finC};"${e.raw}"\n`;
                 });
-            }
 
-            const link = document.createElement("a");
-            link.setAttribute("href", encodeURI(csvContent));
-            link.setAttribute("download", "PodiumLog_Sincronizado_" + new Date().getTime() + ".csv");
-            document.body.appendChild(link);
-            link.click();
+                const link = document.createElement("a");
+                link.setAttribute("href", encodeURI(csvContent));
+                link.setAttribute("download", "PodiumLog_Sincronizado_" + new Date().getTime() + ".csv");
+                document.body.appendChild(link);
+                link.click();
+            }
         };
     </script>
 </body>
