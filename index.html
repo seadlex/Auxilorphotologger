@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Auxilior Photo v3.1.0 - Studio Edition</title>
+    <title>Auxilior Photo v4.0.0 - Clean UI Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -16,12 +16,12 @@
             --text-muted: #747d8c;
         }
 
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0 0 120px 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0 0 100px 0; }
         
         .top-bar { background: var(--surface); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
-        .app-title { font-size: 1.3rem; font-weight: 900; margin: 0; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .app-title { font-size: 1.2rem; font-weight: 900; margin: 0; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
         .app-title span.brand { color: var(--primary); }
-        .version { font-size: 0.9rem; background: var(--accent); color: white; padding: 4px 12px; border-radius: 8px; font-weight: 900; letter-spacing: 1px; box-shadow: 0 2px 10px rgba(255, 71, 87, 0.4); }
+        .version { font-size: 0.85rem; background: var(--accent); color: white; padding: 4px 10px; border-radius: 6px; font-weight: 900; letter-spacing: 1px; }
 
         .status-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; background: #000; padding: 6px 12px; border-radius: 20px; border: 1px solid #333; }
         .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); transition: 0.3s ease; }
@@ -35,7 +35,7 @@
         .alert-box { background: rgba(255, 215, 0, 0.1); border: 1px dashed var(--primary); color: var(--primary); padding: 12px; border-radius: 8px; font-size: 0.9rem; text-align: center; margin-bottom: 20px; font-weight: 500; }
 
         .card { background: var(--surface); border-radius: 12px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #2f3542; }
-        .card-header { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between; }
+        .card-header { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
 
         .file-upload-wrapper input[type="file"] { width: 100%; padding: 12px; background: #000; border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-family: monospace; box-sizing: border-box; }
         
@@ -46,10 +46,11 @@
 
         .log-area { display: flex; flex-direction: column; gap: 12px; }
         
-        .log-card { background: #000; border-left: 4px solid var(--primary); border-radius: 8px; padding: 12px 15px; display: flex; align-items: center; gap: 15px; position: relative; }
+        /* DISEÑO DE TARJETA LIMPIA V4.0.0 */
+        .log-card { background: #000; border-left: 4px solid var(--primary); border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 15px; position: relative; }
         .log-num-box { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .log-num-box span { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .edit-num { background: #111; color: var(--primary); border: 1px dashed #444; font-size: 1.6rem; font-weight: 900; width: 65px; text-align: center; padding: 5px; border-radius: 6px; }
+        .log-num-box span { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .edit-num { background: #111; color: var(--primary); border: 1px dashed #444; font-size: 1.5rem; font-weight: 900; width: 60px; text-align: center; padding: 8px 4px; border-radius: 6px; }
         .edit-num:focus { border-color: var(--primary); outline: none; background: #222; }
         
         .log-details { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; text-align: left; }
@@ -58,9 +59,11 @@
         .log-name { font-size: 1.05rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .log-dance { font-size: 0.85rem; color: var(--success); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn-export { background: #3742fa; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; }
-        .btn-audio { background: #5f27cd; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; display: none; }
+        .log-times-mini { display: flex; flex-direction: column; font-family: monospace; font-size: 0.75rem; text-align: right; min-width: 60px; }
+        .time-in { color: var(--success); margin-bottom: 4px; }
+        .time-out { color: var(--accent); }
+
+        .btn-export { background: #3742fa; color: white; width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; margin-top: 15px; letter-spacing: 1px; }
 
         .floating-controls { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(10px); padding: 15px 20px; display: flex; gap: 10px; border-top: 1px solid #333; z-index: 1000; justify-content: center; }
         .ctrl-btn { flex: 1; max-width: 200px; padding: 15px; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
@@ -75,7 +78,7 @@
 <body>
 
     <div class="top-bar">
-        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span> <span class="version">v3.1.0</span></h1>
+        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v4.0.0</span></h1>
         <div class="status-indicator" id="statusBox">
             <div class="dot" id="micDot"></div>
             <span id="statusText">Apagado</span>
@@ -84,7 +87,7 @@
 
     <div class="container">
         <div class="alert-box">
-            ⚠️ <strong>AVISO FIJO:</strong> Recuerda bajar el volumen de tu teléfono a cero absoluto para evitar los pitidos de notificación al grabar.
+            ⚠️ <strong>AVISO FIJO:</strong> Recuerda bajar el volumen de tu teléfono a cero absoluto para evitar los pitidos al grabar.
         </div>
 
         <div class="card">
@@ -92,7 +95,7 @@
             <div class="file-upload-wrapper">
                 <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
             </div>
-            <div id="fileStatus" style="font-size: 0.8rem; color: var(--success); margin-top: 10px; display: none;">✅ Archivo cargado en memoria.</div>
+            <div id="fileStatus" style="font-size: 0.8rem; color: var(--success); margin-top: 10px; display: none;">✅ Excel cargado y listo en memoria.</div>
         </div>
 
         <div class="card">
@@ -110,20 +113,13 @@
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <span>🎙 3. Registro y Audio (Limpio)</span>
-                <span id="audioTimer" style="color: var(--accent); font-family: monospace; display: none;">00:00:00</span>
-            </div>
+            <div class="card-header">🎙 3. Registro de Danzas</div>
             <div class="log-area" id="logContainer">
                 <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 20px;">
-                    El listado depurado aparecerá aquí...
+                    El registro simplificado aparecerá aquí...
                 </div>
             </div>
-            
-            <div class="export-grid">
-                <button class="btn-export" id="btnExport">⬇ Exportar Excel</button>
-                <button class="btn-audio" id="btnAudio">🔊 Bajar Audio + Marcas</button>
-            </div>
+            <button class="btn-export" id="btnExport">📥 Descargar Excel (.XLSX)</button>
         </div>
     </div>
 
@@ -143,20 +139,16 @@
     </div>
 
     <script>
-        class StudioLogger {
+        class TheaterLoggerV4 {
             constructor() {
                 this.originalData = [];
                 this.logEvents = [];
                 
                 this.isRecording = false;
                 this.isPaused = false;
+                this.wakeLock = null;
+                this.recognition = null;
                 this.activeEntryId = null;
-                
-                this.mediaRecorder = null;
-                this.audioChunks = [];
-                this.audioBlobUrl = null;
-                this.recordingStartTimeMs = 0;
-                this.timerInterval = null;
 
                 this.initDOM();
                 this.initSpeech();
@@ -173,11 +165,9 @@
                     btnPause: document.getElementById('btnPause'),
                     btnStop: document.getElementById('btnStop'),
                     btnExport: document.getElementById('btnExport'),
-                    btnAudio: document.getElementById('btnAudio'),
                     logContainer: document.getElementById('logContainer'),
                     micDot: document.getElementById('micDot'),
-                    statusText: document.getElementById('statusText'),
-                    audioTimer: document.getElementById('audioTimer')
+                    statusText: document.getElementById('statusText')
                 };
             }
 
@@ -191,7 +181,7 @@
                             const workbook = XLSX.read(evt.target.result, {type: 'binary'});
                             this.originalData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
                             this.ui.fileStatus.style.display = 'block';
-                            this.ui.fileStatus.innerText = `✅ Archivo cargado: ${this.originalData.length - 1} filas listas.`;
+                            this.ui.fileStatus.innerText = `✅ Excel cargado: ${this.originalData.length - 1} filas detectadas.`;
                         } catch (err) { alert("Error al leer el archivo Excel."); }
                     };
                     reader.readAsBinaryString(file);
@@ -200,9 +190,9 @@
                 this.ui.btnRecord.addEventListener('click', () => this.startSession());
                 this.ui.btnPause.addEventListener('click', () => this.togglePause());
                 this.ui.btnStop.addEventListener('click', () => this.stopSession());
-                this.ui.btnExport.addEventListener('click', () => this.exportData());
-                this.ui.btnAudio.addEventListener('click', () => this.exportAudioAndLabels());
+                this.ui.btnExport.addEventListener('click', () => this.exportRealExcel());
                 
+                // Evento para editar el número en vivo y actualizar la UI
                 this.ui.logContainer.addEventListener('change', (e) => {
                     if (e.target.classList.contains('edit-num')) {
                         this.updateEntryNumber(e.target.dataset.id, e.target.value);
@@ -210,6 +200,21 @@
                 });
             }
 
+            async requestWakeLock() {
+                try {
+                    if ('wakeLock' in navigator) {
+                        this.wakeLock = await navigator.wakeLock.request('screen');
+                    }
+                } catch (err) {}
+            }
+
+            releaseWakeLock() {
+                if (this.wakeLock !== null) {
+                    this.wakeLock.release().then(() => this.wakeLock = null);
+                }
+            }
+
+            // EXTRAE SOLO EL NOMBRE Y LA OBRA DEL EXCEL
             getCleanExcelData(num) {
                 let nombre = "Sin datos";
                 let obra = "";
@@ -224,99 +229,68 @@
                 return { nombre, obra };
             }
 
+            // ACTUALIZA LOS DATOS VISUALES AL EDITAR EL NÚMERO
             updateEntryNumber(id, newNum) {
                 const entry = this.logEvents.find(e => e.id === id);
                 if (entry) {
                     entry.num = newNum;
                     const cleanData = this.getCleanExcelData(newNum);
-                    document.getElementById(`name-${id}`).innerText = cleanData.nombre;
-                    document.getElementById(`dance-${id}`).innerText = cleanData.obra;
-                }
-            }
-
-            async startAudioRecording() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    this.mediaRecorder = new MediaRecorder(stream);
-                    this.audioChunks = [];
-                    
-                    this.mediaRecorder.ondataavailable = e => {
-                        if (e.data.size > 0) this.audioChunks.push(e.data);
-                    };
-
-                    this.mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-                        this.audioBlobUrl = URL.createObjectURL(audioBlob);
-                        this.ui.btnAudio.style.display = 'block'; 
-                    };
-
-                    this.recordingStartTimeMs = Date.now();
-                    this.mediaRecorder.start();
-                    
-                    this.ui.audioTimer.style.display = 'inline';
-                    this.timerInterval = setInterval(() => {
-                        const elapsed = Math.floor((Date.now() - this.recordingStartTimeMs) / 1000);
-                        const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
-                        const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
-                        const s = String(elapsed % 60).padStart(2, '0');
-                        this.ui.audioTimer.innerText = `REC ${h}:${m}:${s}`;
-                    }, 1000);
-
-                } catch (err) {
-                    alert("No se pudo acceder al micrófono para la grabación de audio de respaldo.");
+                    document.getElementById(`name-${id}`).innerText = "💃 " + cleanData.nombre;
+                    document.getElementById(`dance-${id}`).innerText = "🎵 " + cleanData.obra;
                 }
             }
 
             initSpeech() {
                 const SpeechReq = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (SpeechReq) {
-                    this.recognition = new SpeechReq();
-                    this.recognition.lang = 'es-PY';
-                    this.recognition.continuous = true;
-                    this.recognition.interimResults = false;
-
-                    this.recognition.onstart = () => this.updateUIStatus('listening');
-                    this.recognition.onerror = () => { };
-                    
-                    this.recognition.onend = () => {
-                        if (this.isRecording && !this.isPaused) {
-                            try { this.recognition.start(); } catch (e) {}
-                        } else if (this.isPaused) {
-                            this.updateUIStatus('paused');
-                        } else {
-                            this.updateUIStatus('stopped');
-                        }
-                    };
-
-                    this.recognition.onresult = (event) => {
-                        if (this.isPaused) return; 
-
-                        const transcript = event.results[event.results.length - 1][0].transcript;
-                        const numbers = transcript.match(/\d+/g);
-                        
-                        if (numbers) {
-                            const now = new Date();
-                            const timeStr = String(now.getHours()).padStart(2, '0') + ':' + 
-                                            String(now.getMinutes()).padStart(2, '0') + ':' + 
-                                            String(now.getSeconds()).padStart(2, '0');
-                            
-                            const audioRelativeSecs = this.recordingStartTimeMs > 0 ? 
-                                                      ((Date.now() - this.recordingStartTimeMs) / 1000).toFixed(2) : 0;
-
-                            numbers.forEach(num => this.processAnnouncedNumber(num, timeStr, transcript, audioRelativeSecs));
-                        }
-                    };
+                if (!SpeechReq) {
+                    alert("Tu navegador no soporta el motor de voz nativo.");
+                    return;
                 }
+
+                this.recognition = new SpeechReq();
+                this.recognition.lang = 'es-PY';
+                this.recognition.continuous = true;
+                this.recognition.interimResults = false;
+
+                this.recognition.onstart = () => this.updateUIStatus('listening');
+
+                this.recognition.onresult = (event) => {
+                    if (this.isPaused) return; 
+
+                    const transcript = event.results[event.results.length - 1][0].transcript;
+                    const numbers = transcript.match(/\d+/g);
+                    
+                    if (numbers) {
+                        const now = new Date();
+                        const timeStr = String(now.getHours()).padStart(2, '0') + ':' + 
+                                        String(now.getMinutes()).padStart(2, '0') + ':' + 
+                                        String(now.getSeconds()).padStart(2, '0');
+                        
+                        numbers.forEach(num => this.processAnnouncedNumber(num, timeStr, transcript));
+                    }
+                };
+
+                this.recognition.onerror = () => { };
+
+                this.recognition.onend = () => {
+                    if (this.isRecording && !this.isPaused) {
+                        try { this.recognition.start(); } catch (e) {}
+                    } else if (this.isPaused) {
+                        this.updateUIStatus('paused');
+                    } else {
+                        this.updateUIStatus('stopped');
+                    }
+                };
             }
 
             updateUIStatus(state) {
                 if (state === 'listening') {
                     this.ui.micDot.className = 'dot listening';
-                    this.ui.statusText.innerText = "En vivo (Escuchando)";
+                    this.ui.statusText.innerText = "Escuchando...";
                     this.ui.statusText.style.color = "var(--success)";
                 } else if (state === 'paused') {
                     this.ui.micDot.className = 'dot paused';
-                    this.ui.statusText.innerText = "Pausa Comercial/Música";
+                    this.ui.statusText.innerText = "En Pausa (Música)";
                     this.ui.statusText.style.color = "var(--primary)";
                 } else {
                     this.ui.micDot.className = 'dot';
@@ -325,31 +299,32 @@
                 }
             }
 
-            processAnnouncedNumber(num, timeStr, rawText, audioInSecs) {
+            processAnnouncedNumber(num, timeStr, rawText) {
                 if (this.activeEntryId) {
                     const prevEntry = this.logEvents.find(e => e.id === this.activeEntryId);
                     if (prevEntry && !prevEntry.endTime) {
                         prevEntry.endTime = timeStr;
-                        prevEntry.audioOutSecs = audioInSecs; 
+                        const outSpan = document.getElementById(`out-${this.activeEntryId}`);
+                        if (outSpan) outSpan.innerText = timeStr;
                     }
                 }
 
-                const cleanData = this.getCleanExcelData(num);
                 const newId = Date.now().toString();
-                
+                const cleanData = this.getCleanExcelData(num);
+
                 this.logEvents.push({
-                    id: newId, num: num,
-                    startTime: timeStr, endTime: "",
-                    raw: rawText,
-                    audioInSecs: audioInSecs,
-                    audioOutSecs: ""
+                    id: newId,
+                    num: num,
+                    startTime: timeStr,
+                    endTime: "",
+                    raw: rawText
                 });
                 
                 this.activeEntryId = newId;
-                this.renderCleanCard(newId, num, rawText, cleanData);
+                this.renderCleanCard(newId, num, timeStr, rawText, cleanData);
             }
 
-            renderCleanCard(id, num, rawText, cleanData) {
+            renderCleanCard(id, num, timeStr, rawText, cleanData) {
                 if (this.logEvents.length === 1) this.ui.logContainer.innerHTML = ''; 
                 
                 const div = document.createElement('div');
@@ -360,22 +335,23 @@
                         <input type="number" class="edit-num" data-id="${id}" value="${num}">
                     </div>
                     <div class="log-details">
-                        <span class="log-raw"><strong>Locutor:</strong> "${rawText}"</span>
-                        <span class="log-name" id="name-${id}">${cleanData.nombre}</span>
-                        <span class="log-dance" id="dance-${id}">${cleanData.obra}</span>
+                        <span class="log-raw">🗣 "${rawText}"</span>
+                        <span class="log-name" id="name-${id}">💃 ${cleanData.nombre}</span>
+                        <span class="log-dance" id="dance-${id}">🎵 ${cleanData.obra}</span>
+                    </div>
+                    <div class="log-times-mini">
+                        <div class="time-in">▶ ${timeStr}</div>
+                        <div class="time-out">⏹ <span id="out-${id}">--:--:--</span></div>
                     </div>
                 `;
                 this.ui.logContainer.prepend(div);
             }
 
-            async startSession() {
+            startSession() {
+                this.requestWakeLock();
                 this.isRecording = true;
                 this.isPaused = false;
-                
-                await this.startAudioRecording();
-                if (this.recognition) {
-                    try { this.recognition.start(); } catch (e) {}
-                }
+                try { this.recognition.start(); } catch (e) {}
                 
                 this.ui.btnRecord.style.display = 'none';
                 this.ui.btnPause.style.display = 'flex';
@@ -385,12 +361,12 @@
             togglePause() {
                 this.isPaused = !this.isPaused;
                 if (this.isPaused) {
-                    if (this.recognition) this.recognition.stop(); 
+                    this.recognition.stop(); 
                     this.ui.btnPause.innerHTML = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Reanudar';
                     this.ui.btnPause.style.background = '#444';
                     this.ui.btnPause.style.color = '#fff';
                 } else {
-                    if (this.recognition) try { this.recognition.start(); } catch(e){} 
+                    try { this.recognition.start(); } catch(e){} 
                     this.ui.btnPause.innerHTML = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>Pausar';
                     this.ui.btnPause.style.background = 'var(--primary)';
                     this.ui.btnPause.style.color = '#000';
@@ -400,21 +376,16 @@
             stopSession() {
                 this.isRecording = false;
                 this.isPaused = false;
-                
-                if (this.recognition) this.recognition.stop();
-                
-                if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
-                    this.mediaRecorder.stop();
-                }
-                clearInterval(this.timerInterval);
-                this.ui.audioTimer.style.color = 'var(--text-muted)';
+                this.recognition.stop();
+                this.releaseWakeLock();
 
                 if (this.activeEntryId) {
                     const prevEntry = this.logEvents.find(e => e.id === this.activeEntryId);
                     if (prevEntry && !prevEntry.endTime) {
                         const now = new Date();
                         prevEntry.endTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
-                        prevEntry.audioOutSecs = ((now.getTime() - this.recordingStartTimeMs) / 1000).toFixed(2);
+                        const outSpan = document.getElementById(`out-${this.activeEntryId}`);
+                        if (outSpan) outSpan.innerText = prevEntry.endTime;
                     }
                 }
 
@@ -423,82 +394,57 @@
                 this.ui.btnStop.style.display = 'none';
             }
 
-            exportData() {
+            calcularDesfaseMs() {
+                const eVal = this.ui.timeExif.value;
+                const aVal = this.ui.timeApp.value;
+                if (!eVal || !aVal) return 0;
+                const dExif = new Date("1970-01-01T" + eVal + "Z");
+                const dApp = new Date("1970-01-01T" + aVal + "Z");
+                return dExif.getTime() - dApp.getTime();
+            }
+
+            aplicarDesfase(horaStr, ms) {
+                if (!horaStr || ms === 0) return horaStr || "";
+                let d = new Date("1970-01-01T" + horaStr + "Z");
+                d.setTime(d.getTime() + ms);
+                return String(d.getUTCHours()).padStart(2, '0') + ':' + 
+                       String(d.getUTCMinutes()).padStart(2, '0') + ':' + 
+                       String(d.getUTCSeconds()).padStart(2, '0');
+            }
+
+            exportRealExcel() {
                 if (this.originalData.length === 0) {
-                    alert("Carga el archivo Excel del evento primero.");
+                    alert("Por favor, carga el archivo Excel del evento primero.");
                     return;
                 }
 
-                const eVal = this.ui.timeExif.value;
-                const aVal = this.ui.timeApp.value;
-                let desfaseMs = 0;
-                if (eVal && aVal) {
-                    const dExif = new Date("1970-01-01T" + eVal + "Z");
-                    const dApp = new Date("1970-01-01T" + aVal + "Z");
-                    desfaseMs = dExif.getTime() - dApp.getTime();
-                }
-
-                const aplicarDesfase = (horaStr, ms) => {
-                    if (!horaStr || ms === 0) return horaStr || "";
-                    let d = new Date("1970-01-01T" + horaStr + "Z");
-                    d.setTime(d.getTime() + ms);
-                    return String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0') + ':' + String(d.getUTCSeconds()).padStart(2, '0');
-                };
-                
+                const desfaseMs = this.calcularDesfaseMs();
                 let finalData = this.originalData.map(row => [...row]);
-                finalData[0].push("Inicio_App", "Fin_App", "Inicio_Camara", "Fin_Camara", "Audio_IN_Segundos", "Audio_OUT_Segundos", "Locutor");
+                
+                finalData[0].push("Inicio_App", "Inicio_Camara", "Fin_App", "Fin_Camara", "Texto_Escuchado");
 
                 for (let i = 1; i < finalData.length; i++) {
                     let numStr = String(finalData[i][0] || "").trim();
                     let logMatch = this.logEvents.find(log => String(log.num) === numStr);
                     
                     if (logMatch) {
-                        let camIn = aplicarDesfase(logMatch.startTime, desfaseMs);
-                        let camOut = logMatch.endTime ? aplicarDesfase(logMatch.endTime, desfaseMs) : "";
-                        finalData[i].push(logMatch.startTime, logMatch.endTime, camIn, camOut, logMatch.audioInSecs, logMatch.audioOutSecs, logMatch.raw);
+                        let camIn = this.aplicarDesfase(logMatch.startTime, desfaseMs);
+                        let camOut = logMatch.endTime ? this.aplicarDesfase(logMatch.endTime, desfaseMs) : "";
+                        finalData[i].push(logMatch.startTime, camIn, logMatch.endTime, camOut, logMatch.raw);
                     } else {
-                        finalData[i].push("", "", "", "", "", "", "");
+                        finalData[i].push("", "", "", "", "");
                     }
                 }
 
-                // Escribir archivo nativo .xlsx y fallback CSV con punto y coma (;)
                 const ws = XLSX.utils.aoa_to_sheet(finalData);
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Danzas_Studio");
-                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_v3.1.xlsx");
-            }
-
-            exportAudioAndLabels() {
-                if (!this.audioBlobUrl) return;
-
-                const audioLink = document.createElement('a');
-                audioLink.href = this.audioBlobUrl;
-                audioLink.download = "Audio_Competencia_v3.1.webm";
-                document.body.appendChild(audioLink);
-                audioLink.click();
-                document.body.removeChild(audioLink);
-
-                let labelsText = "";
-                this.logEvents.forEach(e => {
-                    const end = e.audioOutSecs || (parseFloat(e.audioInSecs) + 60).toFixed(2);
-                    const cleanData = this.getCleanExcelData(e.num);
-                    labelsText += `${e.audioInSecs}\t${end}\tDanza ${e.num}: ${cleanData.nombre}\n`;
-                });
-
-                const blobLabels = new Blob([labelsText], { type: 'text/plain' });
-                const urlLabels = URL.createObjectURL(blobLabels);
-                const linkLabels = document.createElement('a');
-                linkLabels.href = urlLabels;
-                linkLabels.download = "Marcas_Edicion.txt";
-                setTimeout(() => {
-                    document.body.appendChild(linkLabels);
-                    linkLabels.click();
-                    document.body.removeChild(linkLabels);
-                }, 500); 
+                XLSX.utils.book_append_sheet(wb, ws, "Danzas_Sincronizadas");
+                
+                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_v4.xlsx");
             }
         }
 
-        window.onload = () => { const app = new StudioLogger(); };
+        window.onload = () => { const app = new TheaterLoggerV4(); };
     </script>
 </body>
 </html>
