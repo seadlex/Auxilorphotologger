@@ -6,15 +6,17 @@
     <title>Podium Audio Log - Smart Sync</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; margin: 0; overflow-x: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; margin: 0; }
         .header { margin-bottom: 20px; }
         .clock { font-size: 3em; font-weight: bold; color: #00ff88; margin: 10px auto; border: 2px solid #333; padding: 10px 20px; border-radius: 10px; display: inline-block; letter-spacing: 2px; background: #000; }
-
+        
         .ref-container { width: 100%; max-width: 600px; background: #1e1e1e; padding: 15px; border-radius: 8px; margin: 0 auto 15px auto; border: 1px solid #333; text-align: left; box-sizing: border-box; }
         .ref-title { font-size: 0.85em; color: #aaa; margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 1px; }
-
-        .sheets-input { flex-grow: 1; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 1em; box-sizing: border-box; width: 100%; }
         
+        .sheets-row { display: flex; gap: 10px; }
+        .sheets-input { flex-grow: 1; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 1em; box-sizing: border-box; }
+        .sheets-btn { background: #0f9d58; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
         input[type="file"] { color: #fff; background: #000; padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box; border: 1px solid #444; }
         #excel-preview { margin-top: 10px; max-height: 150px; overflow-y: auto; background: #000; border: 1px solid #444; border-radius: 5px; display: none; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
@@ -24,24 +26,20 @@
         .btn { padding: 18px 30px; font-size: 1.2em; font-weight: bold; cursor: pointer; border-radius: 50px; border: none; width: 100%; max-width: 600px; margin: 10px auto; display: block; transition: 0.2s; }
         .start { background: #e50914; color: white; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); }
         .stop { background: #333; color: white; border: 2px solid #e50914; }
-        .pause { background: #ffcc00; color: #000; border: 2px solid #ffcc00; }
         .export { background: #007bff; color: white; margin-top: 20px; }
-
+        
         #log { text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; height: 35vh; overflow-y: auto; margin: 15px auto; border: 1px solid #333; width: 100%; max-width: 600px; box-sizing: border-box; }
-        .entry { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 10px; padding: 10px; border-radius: 6px; border-left: 4px solid #ffcc00; gap: 10px; }
+        .entry { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 10px; padding: 12px; border-radius: 6px; border-left: 4px solid #ffcc00; }
+        .entry-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
+        .time { color: #888; font-family: monospace; font-size: 1em; }
         
-        .time-box { display: flex; flex-direction: column; min-width: 75px; flex-shrink: 0; text-align: left; }
-        .time { font-family: monospace; font-size: 0.85em; }
-
-        .edit-num { background: #000; color: #ffcc00; border: 1px dashed #666; font-size: 1.2em; font-weight: bold; width: 55px; text-align: center; padding: 8px 4px; border-radius: 4px; flex-shrink: 0; }
+        .edit-num { background: #000; color: #ffcc00; border: 1px dashed #666; font-size: 1.3em; font-weight: bold; width: 70px; text-align: center; padding: 8px; border-radius: 4px; }
         .edit-num:focus { border-color: #ffcc00; outline: none; background: #111; }
-
-        .text-box { display: flex; flex-direction: column; text-align: left; flex-grow: 1; overflow: hidden; }
-        .raw-text { color: #aaa; font-size: 0.85em; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .matched-data { color: #00ff88; font-size: 0.8em; font-weight: bold; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .delete-btn { background: transparent; border: none; color: #ff4444; font-size: 1.5em; cursor: pointer; padding: 5px; flex-shrink: 0; }
-
+        .raw-text { color: #aaa; font-size: 0.9em; font-style: italic; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .matched-data { color: #00ff88; font-size: 0.8em; font-weight: bold; margin-top: 5px; display: block; }
+        .delete-btn { background: transparent; border: none; color: #ff4444; font-size: 1.5em; cursor: pointer; padding: 5px 10px; }
+        
         input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
@@ -83,14 +81,14 @@
     </div>
 
     <button id="startBtn" class="btn start">⏺ INICIAR GRABACIÓN</button>
-    <button id="pauseBtn" class="btn pause" style="display:none;">⏸ PAUSAR (Música)</button>
+    <button id="pauseBtn" class="btn pause" style="display:none; background: #ffcc00; color: #000; border: 2px solid #ffcc00;">⏸ PAUSAR (Música)</button>
     <button id="stopBtn" class="btn stop" style="display:none;">⏹ DETENER</button>
-
+    
     <div id="log">
         <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...<br><small>(Baja el volumen de tu teléfono a cero para evitar pitidos)</small></div>
     </div>
 
-    <button id="exportBtn" class="btn export">⬇ DESCARGAR SINCRONIZADO</button>
+    <button id="exportBtn" class="btn export">⬇ DESCARGAR CSV FINAL</button>
 
     <script>
         let logEntries = [];
@@ -106,13 +104,13 @@
             if (!file) return;
             loadedFileName = file.name;
             const reader = new FileReader();
-
+            
             reader.onload = function(evt) {
                 try {
                     const data = evt.target.result;
                     const workbook = XLSX.read(data, {type: 'binary'});
                     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-
+                    
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
                     if (jsonData.length > 0) {
                         excelHeaders = jsonData[0]; 
@@ -127,8 +125,10 @@
             reader.readAsBinaryString(file);
         });
 
+        // --- FUNCIÓN PARA BUSCAR EL NÚMERO EN EL EXCEL ---
         window.buscarEnExcel = function(num) {
             if (excelDataRows.length === 0) return `Número: ${num}`; 
+
             const fila = excelDataRows.find(row => String(row[0]).trim() === String(num).trim());
 
             if (fila) {
@@ -138,18 +138,19 @@
                         detalles.push(`${excelHeaders[i]}: ${fila[i]}`);
                     }
                 }
-                return detalles.join(", ");
+                return detalles.join(", "); 
             } else {
                 return `Número: ${num} (No encontrado en Excel)`;
             }
         };
 
+        // --- EDICIÓN EN VIVO ---
         window.actualizarNumero = function(id, nuevoValor) {
             const entry = logEntries.find(e => e.id === id);
             if(entry) {
                 entry.num = nuevoValor;
                 entry.fullData = window.buscarEnExcel(nuevoValor); 
-
+                
                 const spanDatos = document.getElementById('data-' + id);
                 if(spanDatos) spanDatos.innerText = entry.fullData;
             }
@@ -164,7 +165,7 @@
         // --- RECONOCIMIENTO DE VOZ ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition;
-
+        
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.continuous = true;
@@ -172,7 +173,7 @@
             recognition.lang = 'es-PY';
 
             recognition.onresult = function(event) {
-                if (isPaused) return; 
+                if (isPaused) return;
 
                 const result = event.results[event.results.length - 1][0].transcript;
                 const d = new Date();
@@ -180,36 +181,39 @@
                 const numbers = result.match(/\d+/g);
 
                 if (numbers) {
-                    if(logEntries.length === 0) logDiv.innerHTML = '';
-
-                    // Cerrar el tiempo del evento anterior
-                    if (logEntries.length > 0) {
-                        let lastEntry = logEntries[logEntries.length - 1];
-                        if (!lastEntry.endTime) {
-                            lastEntry.endTime = time;
-                            let finSpan = document.getElementById('fin-' + lastEntry.id);
-                            if(finSpan) finSpan.innerText = `⏹ ${time}`;
-                        }
-                    }
-
+                    if(logEntries.length === 0) logDiv.innerHTML = ''; 
+                    
                     numbers.forEach(num => {
+                        // Cierra el evento anterior al escuchar un número nuevo
+                        if (logEntries.length > 0) {
+                            let lastEntry = logEntries[logEntries.length - 1];
+                            if (!lastEntry.endTime) {
+                                lastEntry.endTime = time;
+                                let finSpan = document.getElementById('fin-' + lastEntry.id);
+                                if(finSpan) finSpan.innerText = `Fin: ${time}`;
+                            }
+                        }
+
                         const entryId = Date.now() + Math.floor(Math.random() * 1000);
-                        const datosCompletos = window.buscarEnExcel(num);
-
+                        const datosCompletos = window.buscarEnExcel(num); 
+                        
+                        // Guardamos startTime y dejamos endTime vacío
                         logEntries.push({ id: entryId, startTime: time, endTime: "", num: num, raw: result, fullData: datosCompletos });
-
+                        
                         const div = document.createElement('div');
                         div.className = 'entry';
                         div.id = 'entry-' + entryId;
                         div.innerHTML = `
-                            <div class="time-box">
-                                <span class="time" style="color:#00ff88;">▶ ${time}</span>
-                                <span class="time" id="fin-${entryId}" style="color:#ff4444;">⏹ --:--:--</span>
-                            </div>
-                            <input type="number" class="edit-num" value="${num}" onchange="actualizarNumero(${entryId}, this.value)">
-                            <div class="text-box">
-                                <span class="raw-text">"${result}"</span>
-                                <span class="matched-data" id="data-${entryId}">${datosCompletos}</span>
+                            <div class="entry-left">
+                                <div style="display:flex; flex-direction:column;">
+                                    <span class="time" style="color:#00ff88;">Inicio: ${time}</span>
+                                    <span class="time" id="fin-${entryId}" style="color:#ff4444; font-size: 0.9em;">Fin: --:--:--</span>
+                                </div>
+                                <input type="number" class="edit-num" value="${num}" onchange="actualizarNumero(${entryId}, this.value)">
+                                <div style="display:flex; flex-direction:column; text-align:left;">
+                                    <span class="raw-text">"${result}"</span>
+                                    <span class="matched-data" id="data-${entryId}">${datosCompletos}</span>
+                                </div>
                             </div>
                             <button class="delete-btn" onclick="eliminarRegistro(${entryId})">✖</button>
                         `;
@@ -228,7 +232,6 @@
                     isPaused = false;
                     document.getElementById('startBtn').style.display = 'none';
                     document.getElementById('pauseBtn').style.display = 'block';
-                    document.getElementById('pauseBtn').innerText = '⏸ PAUSAR (Música)';
                     document.getElementById('stopBtn').style.display = 'block';
                 } catch(e) { alert("Error. Recuerda usar Chrome y dar permisos."); }
             };
@@ -253,6 +256,7 @@
                 isRecording = false;
                 isPaused = false;
 
+                // Si se detiene manualmente, cierra la última danza
                 if (logEntries.length > 0) {
                     let lastEntry = logEntries[logEntries.length - 1];
                     if (!lastEntry.endTime) {
@@ -260,7 +264,7 @@
                         const time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
                         lastEntry.endTime = time;
                         let finSpan = document.getElementById('fin-' + lastEntry.id);
-                        if(finSpan) finSpan.innerText = `⏹ ${time}`;
+                        if(finSpan) finSpan.innerText = `Fin: ${time}`;
                     }
                 }
 
@@ -277,15 +281,15 @@
             if(!exifStr || !appStr) return 0;
             let dExif = new Date("1970-01-01T" + exifStr + "Z");
             let dApp = new Date("1970-01-01T" + appStr + "Z");
-            return dExif.getTime() - dApp.getTime();
+            return dExif.getTime() - dApp.getTime(); 
         }
 
         function aplicarDesfase(horaStr, desfaseMs) {
             if(!horaStr || desfaseMs === 0) return horaStr || "";
             let d = new Date("1970-01-01T" + horaStr + "Z");
             d.setTime(d.getTime() + desfaseMs);
-            return String(d.getUTCHours()).padStart(2, '0') + ':' +
-                   String(d.getUTCMinutes()).padStart(2, '0') + ':' +
+            return String(d.getUTCHours()).padStart(2, '0') + ':' + 
+                   String(d.getUTCMinutes()).padStart(2, '0') + ':' + 
                    String(d.getUTCSeconds()).padStart(2, '0');
         }
 
@@ -294,51 +298,24 @@
             const timeApp = document.getElementById('timeApp').value;
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
-            if (excelHeaders.length > 0) {
-                // Exportación nativa a XLSX/CSV respetando formato de ingreso exacto
-                let newData = [];
-                let newHeaders = [...excelHeaders, "Inicio_App", "Inicio_Camara", "Fin_App", "Fin_Camara"];
-                newData.push(newHeaders);
-
-                excelDataRows.forEach(row => {
-                    let numStr = String(row[0] || "").trim();
-                    let entry = [...logEntries].reverse().find(e => String(e.num).trim() === numStr);
-
-                    let newRow = [...row];
-                    if (entry) {
-                        let inicioC = aplicarDesfase(entry.startTime, desfaseMs);
-                        let finC = entry.endTime ? aplicarDesfase(entry.endTime, desfaseMs) : "";
-                        newRow.push(entry.startTime, inicioC, entry.endTime, finC);
-                    } else {
-                        newRow.push("", "", "", ""); // Deja en blanco si no se bailó
-                    }
-                    newData.push(newRow);
-                });
-
-                let ws = XLSX.utils.aoa_to_sheet(newData);
-                let wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Sincronizado");
+            // Mantiene la estructura base de tu código original añadiendo las de Fin 
+            // y utilizando punto y coma (;) como separador para la localización
+            let csvContent = "data:text/csv;charset=utf-8,Inicio_App;Inicio_Camara;Fin_App;Fin_Camara;Numero;Datos_Completos;Transcripcion\n";
+            
+            logEntries.forEach(e => { 
+                let inicioC = aplicarDesfase(e.startTime, desfaseMs);
+                let finC = e.endTime ? aplicarDesfase(e.endTime, desfaseMs) : "";
                 
-                // Conserva la extensión original del archivo que subiste
-                let extension = loadedFileName.toLowerCase().endsWith(".csv") ? "csv" : "xlsx";
-                XLSX.writeFile(wb, "PodiumLog_Sincronizado." + extension);
-
-            } else {
-                // Fallback si no subiste archivo (usa punto y coma nativo)
-                let csvContent = "data:text/csv;charset=utf-8,\uFEFFNumero;Datos_Completos;Inicio_App;Inicio_Camara;Fin_App;Fin_Camara;Transcripcion\n";
-                logEntries.forEach(e => {
-                    let inicioC = aplicarDesfase(e.startTime, desfaseMs);
-                    let finC = e.endTime ? aplicarDesfase(e.endTime, desfaseMs) : "";
-                    let datosSeguros = e.fullData.replace(/"/g, '""');
-                    csvContent += `${e.num};"${datosSeguros}";${e.startTime};${inicioC};${e.endTime};${finC};"${e.raw}"\n`;
-                });
-
-                const link = document.createElement("a");
-                link.setAttribute("href", encodeURI(csvContent));
-                link.setAttribute("download", "PodiumLog_Sincronizado_" + new Date().getTime() + ".csv");
-                document.body.appendChild(link);
-                link.click();
-            }
+                let datosSeguros = e.fullData.replace(/"/g, '""'); 
+                
+                csvContent += `${e.startTime};${inicioC};${e.endTime};${finC};${e.num};"${datosSeguros}";"${e.raw}"\n`; 
+            });
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", "PodiumLog_" + new Date().getTime() + ".csv");
+            document.body.appendChild(link);
+            link.click();
         };
     </script>
 </body>
