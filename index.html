@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Auxilior Photo v4.1.0 - Ultra Clean UI</title>
+    <title>Auxilior Photo v5.0.0 - XMP Ready</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -32,7 +32,7 @@
 
         .container { padding: 20px; max-width: 900px; margin: 0 auto; }
 
-        .alert-box { background: rgba(255, 215, 0, 0.05); border: 1px dashed var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; font-size: 0.9rem; text-align: left; margin-bottom: 20px; font-weight: 500; line-height: 1.5; }
+        .alert-box { background: rgba(255, 215, 0, 0.05); border: 1px dashed var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; font-size: 0.9rem; text-align: left; margin-bottom: 20px; font-weight: 500; line-height: 1.6; }
         .alert-box strong { color: #fff; }
 
         .card { background: var(--surface); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #2f3542; }
@@ -47,7 +47,6 @@
 
         .log-area { display: flex; flex-direction: column; gap: 12px; }
         
-        /* DISEÑO DE TARJETA ULTRA ANCHA V4.1.0 */
         .log-card { background: #000; border-left: 5px solid var(--primary); border-radius: 8px; padding: 15px; display: flex; align-items: center; gap: 20px; width: 100%; box-sizing: border-box; }
         .log-num-box { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
         .log-num-box span { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
@@ -75,7 +74,7 @@
 <body>
 
     <div class="top-bar">
-        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v4.1.0</span></h1>
+        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v5.0.0</span></h1>
         <div class="status-indicator" id="statusBox">
             <div class="dot" id="micDot"></div>
             <span id="statusText">Apagado</span>
@@ -84,8 +83,8 @@
 
     <div class="container">
         <div class="alert-box">
-            ⚠️ <strong>AVISO DE VOLUMEN:</strong> Recuerda bajar el volumen de tu teléfono a cero absoluto para evitar los pitidos de notificación al grabar.<br><br>
-            📄 <strong>ESTRUCTURA EXCEL:</strong> El programa extraerá automáticamente la Bailarina/Grupo de la <strong>Columna 2 (B)</strong> y la Obra de la <strong>Columna 3 (C)</strong>.
+            <strong>Nombres de Campos Soportados:</strong><br>
+            Orden, Nombre, Obra, Academia, Modalidad, Coreógrafo, Tipo, Concurso.
         </div>
 
         <div class="card">
@@ -93,18 +92,18 @@
             <div class="file-upload-wrapper">
                 <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
             </div>
-            <div id="fileStatus" style="font-size: 0.8rem; color: var(--success); margin-top: 10px; display: none;">✅ Excel cargado y listo en memoria.</div>
+            <div id="fileStatus" style="font-size: 0.8rem; color: var(--success); margin-top: 10px; display: none;">✅ Excel cargado y mapeado en memoria.</div>
         </div>
 
         <div class="card">
-            <div class="card-header">⏱ 2. Sincronización de Relojes</div>
+            <div class="card-header">⏱ 2. Calibración (Hora Foto vs Pantalla)</div>
             <div class="time-grid">
                 <div class="time-box">
-                    <label>Hora Foto (Cámara)</label>
+                    <label>Hora EXIF de la foto</label>
                     <input type="time" step="1" id="timeExif" required>
                 </div>
                 <div class="time-box">
-                    <label>Hora Actual (App)</label>
+                    <label>Hora en pantalla (App)</label>
                     <input type="time" step="1" id="timeApp" required>
                 </div>
             </div>
@@ -117,7 +116,7 @@
                     El panel está listo. Presiona Grabar para comenzar...
                 </div>
             </div>
-            <button class="btn-export" id="btnExport">📥 Descargar Excel (.XLSX)</button>
+            <button class="btn-export" id="btnExport">📥 Descargar Excel (Datos XMP)</button>
         </div>
     </div>
 
@@ -137,9 +136,10 @@
     </div>
 
     <script>
-        class TheaterLoggerV4 {
+        class TheaterLoggerV5 {
             constructor() {
                 this.originalData = [];
+                this.excelHeaders = [];
                 this.logEvents = [];
                 
                 this.isRecording = false;
@@ -178,6 +178,12 @@
                         try {
                             const workbook = XLSX.read(evt.target.result, {type: 'binary'});
                             this.originalData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
+                            
+                            // Guardar cabeceras para búsqueda dinámica
+                            if (this.originalData.length > 0) {
+                                this.excelHeaders = this.originalData[0].map(h => String(h).toLowerCase().trim());
+                            }
+                            
                             this.ui.fileStatus.style.display = 'block';
                             this.ui.fileStatus.innerText = `✅ Excel cargado: ${this.originalData.length - 1} filas detectadas.`;
                         } catch (err) { alert("Error al leer el archivo Excel."); }
@@ -190,7 +196,6 @@
                 this.ui.btnStop.addEventListener('click', () => this.stopSession());
                 this.ui.btnExport.addEventListener('click', () => this.exportRealExcel());
                 
-                // Evento para editar el número en vivo y actualizar la UI
                 this.ui.logContainer.addEventListener('change', (e) => {
                     if (e.target.classList.contains('edit-num')) {
                         this.updateEntryNumber(e.target.dataset.id, e.target.value);
@@ -212,16 +217,21 @@
                 }
             }
 
-            // EXTRAE LA COLUMNA 2 (ÍNDICE 1) Y COLUMNA 3 (ÍNDICE 2)
+            // EXTRACCIÓN DINÁMICA POR NOMBRE DE COLUMNA
             getCleanExcelData(num) {
                 let nombre = "Sin nombre";
                 let obra = "Sin obra";
                 
-                if (this.originalData.length > 1) {
+                if (this.originalData.length > 1 && this.excelHeaders.length > 0) {
+                    // Buscar en qué índice están las columnas clave
+                    const idxNombre = this.excelHeaders.findIndex(h => h.includes('nombre') || h.includes('participante'));
+                    const idxObra = this.excelHeaders.findIndex(h => h.includes('obra'));
+
                     const rowData = this.originalData.slice(1).find(row => String(row[0]).trim() === String(num).trim());
+                    
                     if (rowData) {
-                        nombre = rowData[1] || "Sin nombre";
-                        obra = rowData[2] || "Sin obra";
+                        if (idxNombre !== -1 && rowData[idxNombre]) nombre = rowData[idxNombre];
+                        if (idxObra !== -1 && rowData[idxObra]) obra = rowData[idxObra];
                     }
                 }
                 return { nombre, obra };
@@ -297,7 +307,7 @@
             }
 
             processAnnouncedNumber(num, timeStr, rawText) {
-                // Cerramos el tiempo anterior de forma invisible (sin actualizar la UI)
+                // Cerramos el tiempo de la danza anterior
                 if (this.activeEntryId) {
                     const prevEntry = this.logEvents.find(e => e.id === this.activeEntryId);
                     if (prevEntry && !prevEntry.endTime) {
@@ -371,6 +381,7 @@
                 this.recognition.stop();
                 this.releaseWakeLock();
 
+                // Cerrar última danza
                 if (this.activeEntryId) {
                     const prevEntry = this.logEvents.find(e => e.id === this.activeEntryId);
                     if (prevEntry && !prevEntry.endTime) {
@@ -384,22 +395,33 @@
                 this.ui.btnStop.style.display = 'none';
             }
 
+            // CALCULO DEL ERROR DE LA CÁMARA
             calcularDesfaseMs() {
-                const eVal = this.ui.timeExif.value;
-                const aVal = this.ui.timeApp.value;
+                const eVal = this.ui.timeExif.value; // Hora interna foto (ej. 15:05:00)
+                const aVal = this.ui.timeApp.value;  // Hora real en pantalla (ej. 15:00:00)
                 if (!eVal || !aVal) return 0;
+                
                 const dExif = new Date("1970-01-01T" + eVal + "Z");
                 const dApp = new Date("1970-01-01T" + aVal + "Z");
                 return dExif.getTime() - dApp.getTime();
             }
 
-            aplicarDesfase(horaStr, ms) {
-                if (!horaStr || ms === 0) return horaStr || "";
-                let d = new Date("1970-01-01T" + horaStr + "Z");
+            // APLICA EL DESFASE Y CREA FORMATO AAAA-MM-DD HH:MM:SS
+            aplicarDesfaseCompleto(horaStr, ms) {
+                if (!horaStr) return "";
+                
+                let today = new Date();
+                let [h, m, s] = horaStr.split(':');
+                
+                // Creamos un objeto Date basado en el día actual y la hora en que el app escuchó
+                let d = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(h), parseInt(m), parseInt(s));
+                
+                // Le sumamos/restamos el error de la cámara
                 d.setTime(d.getTime() + ms);
-                return String(d.getUTCHours()).padStart(2, '0') + ':' + 
-                       String(d.getUTCMinutes()).padStart(2, '0') + ':' + 
-                       String(d.getUTCSeconds()).padStart(2, '0');
+                
+                // Formateamos para el metadato XMP
+                const pad = n => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
             }
 
             exportRealExcel() {
@@ -411,30 +433,32 @@
                 const desfaseMs = this.calcularDesfaseMs();
                 let finalData = this.originalData.map(row => [...row]);
                 
-                finalData[0].push("Inicio_App", "Inicio_Camara", "Fin_App", "Fin_Camara", "Texto_Escuchado");
+                // Solo las columnas finales necesarias, con los nombres solicitados
+                finalData[0].push("Inicio_danza", "Fin_danza");
 
                 for (let i = 1; i < finalData.length; i++) {
                     let numStr = String(finalData[i][0] || "").trim();
                     let logMatch = this.logEvents.find(log => String(log.num) === numStr);
                     
                     if (logMatch) {
-                        let camIn = this.aplicarDesfase(logMatch.startTime, desfaseMs);
-                        let camOut = logMatch.endTime ? this.aplicarDesfase(logMatch.endTime, desfaseMs) : "";
-                        finalData[i].push(logMatch.startTime, camIn, logMatch.endTime, camOut, logMatch.raw);
+                        let camIn = this.aplicarDesfaseCompleto(logMatch.startTime, desfaseMs);
+                        let camOut = logMatch.endTime ? this.aplicarDesfaseCompleto(logMatch.endTime, desfaseMs) : "";
+                        finalData[i].push(camIn, camOut);
                     } else {
-                        finalData[i].push("", "", "", "", "");
+                        // Si la danza no fue registrada, dejamos las columnas en blanco
+                        finalData[i].push("", "");
                     }
                 }
 
                 const ws = XLSX.utils.aoa_to_sheet(finalData);
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Danzas_Sincronizadas");
+                XLSX.utils.book_append_sheet(wb, ws, "Tiempos_XMP");
                 
-                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_v4.1.xlsx");
+                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_XMP_v5.xlsx");
             }
         }
 
-        window.onload = () => { const app = new TheaterLoggerV4(); };
+        window.onload = () => { const app = new TheaterLoggerV5(); };
     </script>
 </body>
 </html>
