@@ -328,7 +328,10 @@
                     document.getElementById('startBtn').style.display = 'none';
                     document.getElementById('stopBtn').style.display = 'block';
                     document.getElementById('pauseBtn').style.display = 'block';
-                    iniciarGrabacionAudio();
+                    // Iniciar grabacion de audio con retraso para no interferir con el microfono de voz
+                    setTimeout(function() {
+                        iniciarGrabacionAudio().catch(function() {});
+                    }, 2000);
                 } catch(e) { alert("Error. Recuerde usar Chrome y dar permisos."); }
             };
 
@@ -385,26 +388,44 @@
             const timeApp = document.getElementById('timeApp').value;
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
-            // Columnas nuevas generadas por el programa
-            const newCols = ['Tiempo_App', 'Tiempo_Camara', 'Transcripcion', 'Audio_Marca_Seg'];
+            // Ordenar log cronologicamente para calcular inicio/fin de cada danza
+            let logOrdenado = logEntries.slice().sort(function(a, b) {
+                return a.time.localeCompare(b.time);
+            });
 
-            // Crear mapa de numero -> entradas del log (puede haber multiples por numero)
-            let logPorNumero = {};
-            logEntries.forEach(e => {
-                let tiempoCamara = aplicarDesfase(e.time, desfaseMs);
+            // Calcular inicio y fin de cada danza
+            // Inicio = cuando se anuncia ese numero
+            // Fin = cuando se anuncia el SIGUIENTE numero (inicio de la siguiente danza)
+            let logConRangos = [];
+            for (let i = 0; i < logOrdenado.length; i++) {
+                let e = logOrdenado[i];
+                let inicioApp = e.time;
+                let finApp = (i + 1 < logOrdenado.length) ? logOrdenado[i + 1].time : '';
+                let inicioCamara = aplicarDesfase(inicioApp, desfaseMs);
+                let finCamara = finApp ? aplicarDesfase(finApp, desfaseMs) : '';
                 let marcaAudio = '';
                 let marca = audioMarkers.find(m => m.numero === e.num && m.tiempo === e.time);
                 if (marca) marcaAudio = marca.offsetSegundos + 's';
 
-                if (!logPorNumero[String(e.num).trim()]) {
-                    logPorNumero[String(e.num).trim()] = [];
-                }
-                logPorNumero[String(e.num).trim()].push({
-                    tiempoApp: e.time,
-                    tiempoCamara: tiempoCamara,
+                logConRangos.push({
+                    num: String(e.num).trim(),
+                    inicioApp: inicioApp,
+                    finApp: finApp,
+                    inicioCamara: inicioCamara,
+                    finCamara: finCamara,
                     transcripcion: e.raw,
                     marcaAudio: marcaAudio
                 });
+            }
+
+            // Columnas nuevas generadas por el programa
+            const newCols = ['Inicio_App', 'Fin_App', 'Inicio_Camara', 'Fin_Camara', 'Transcripcion', 'Audio_Marca_Seg'];
+
+            // Crear mapa de numero -> entradas con rangos
+            let logPorNumero = {};
+            logConRangos.forEach(function(lr) {
+                if (!logPorNumero[lr.num]) logPorNumero[lr.num] = [];
+                logPorNumero[lr.num].push(lr);
             });
 
             if (excelHeaders.length > 0 && excelDataRows.length > 0) {
@@ -413,40 +434,44 @@
 
                 // Header: columnas originales + columnas nuevas
                 let headerRow = excelHeaders.slice();
-                newCols.forEach(c => headerRow.push(c));
+                newCols.forEach(function(c) { headerRow.push(c); });
                 outputData.push(headerRow);
 
                 // Filas: cada fila original + datos del log si existen
-                excelDataRows.forEach(row => {
+                excelDataRows.forEach(function(row) {
                     let fila = [];
                     for (let i = 0; i < excelHeaders.length; i++) {
                         fila.push(row[i] !== undefined ? row[i] : "");
                     }
                     let numKey = String(row[0]).trim();
                     if (logPorNumero[numKey] && logPorNumero[numKey].length > 0) {
-                        let logData = logPorNumero[numKey].shift();
-                        fila.push(logData.tiempoApp);
-                        fila.push(logData.tiempoCamara);
-                        fila.push(logData.transcripcion);
-                        fila.push(logData.marcaAudio);
+                        let lr = logPorNumero[numKey].shift();
+                        fila.push(lr.inicioApp);
+                        fila.push(lr.finApp);
+                        fila.push(lr.inicioCamara);
+                        fila.push(lr.finCamara);
+                        fila.push(lr.transcripcion);
+                        fila.push(lr.marcaAudio);
                     } else {
-                        newCols.forEach(() => fila.push(""));
+                        newCols.forEach(function() { fila.push(""); });
                     }
                     outputData.push(fila);
                 });
 
                 // Agregar entradas del log que NO coincidieron con ninguna fila del excel
-                Object.keys(logPorNumero).forEach(numKey => {
-                    logPorNumero[numKey].forEach(logData => {
+                Object.keys(logPorNumero).forEach(function(numKey) {
+                    logPorNumero[numKey].forEach(function(lr) {
                         let fila = [];
                         for (let i = 0; i < excelHeaders.length; i++) {
                             if (i === 0) fila.push(numKey);
                             else fila.push("");
                         }
-                        fila.push(logData.tiempoApp);
-                        fila.push(logData.tiempoCamara);
-                        fila.push(logData.transcripcion);
-                        fila.push(logData.marcaAudio);
+                        fila.push(lr.inicioApp);
+                        fila.push(lr.finApp);
+                        fila.push(lr.inicioCamara);
+                        fila.push(lr.finCamara);
+                        fila.push(lr.transcripcion);
+                        fila.push(lr.marcaAudio);
                         outputData.push(fila);
                     });
                 });
@@ -470,16 +495,13 @@
 
             } else {
                 // --- SIN ARCHIVO CARGADO: exportar solo los datos del log como CSV ---
-                let csvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion,Audio_Marca_Seg\n";
+                let csvContent = "data:text/csv;charset=utf-8,Numero,Datos_Completos,Inicio_App,Fin_App,Inicio_Camara,Fin_Camara,Transcripcion,Audio_Marca_Seg\n";
 
-                logEntries.forEach(e => {
-                    let tiempoCamara = aplicarDesfase(e.time, desfaseMs);
-                    let datosSeguros = e.fullData.replace(/"/g, '""');
-                    let marcaAudio = '';
-                    let marca = audioMarkers.find(m => m.numero === e.num && m.tiempo === e.time);
-                    if (marca) marcaAudio = marca.offsetSegundos + 's';
+                logConRangos.forEach(function(lr) {
+                    let entry = logEntries.find(function(e) { return String(e.num).trim() === lr.num && e.time === lr.inicioApp; });
+                    let datosSeguros = entry ? entry.fullData.replace(/"/g, '""') : '';
 
-                    csvContent += `${e.time},${tiempoCamara},${e.num},"${datosSeguros}","${e.raw}",${marcaAudio}\n`;
+                    csvContent += lr.num + ',"' + datosSeguros + '",' + lr.inicioApp + ',' + lr.finApp + ',' + lr.inicioCamara + ',' + lr.finCamara + ',"' + lr.transcripcion + '",' + lr.marcaAudio + '\n';
                 });
 
                 const link = document.createElement("a");
