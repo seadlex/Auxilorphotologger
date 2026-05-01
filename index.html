@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Auxilior Photo v4.0.0 - Clean UI Edition</title>
+    <title>Auxilior Photo v4.1.0 - Ultra Clean UI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -30,11 +30,12 @@
 
         @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
 
-        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .container { padding: 20px; max-width: 900px; margin: 0 auto; }
 
-        .alert-box { background: rgba(255, 215, 0, 0.1); border: 1px dashed var(--primary); color: var(--primary); padding: 12px; border-radius: 8px; font-size: 0.9rem; text-align: center; margin-bottom: 20px; font-weight: 500; }
+        .alert-box { background: rgba(255, 215, 0, 0.05); border: 1px dashed var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; font-size: 0.9rem; text-align: left; margin-bottom: 20px; font-weight: 500; line-height: 1.5; }
+        .alert-box strong { color: #fff; }
 
-        .card { background: var(--surface); border-radius: 12px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #2f3542; }
+        .card { background: var(--surface); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #2f3542; }
         .card-header { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
 
         .file-upload-wrapper input[type="file"] { width: 100%; padding: 12px; background: #000; border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-family: monospace; box-sizing: border-box; }
@@ -46,27 +47,23 @@
 
         .log-area { display: flex; flex-direction: column; gap: 12px; }
         
-        /* DISEÑO DE TARJETA LIMPIA V4.0.0 */
-        .log-card { background: #000; border-left: 4px solid var(--primary); border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 15px; position: relative; }
-        .log-num-box { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .log-num-box span { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
-        .edit-num { background: #111; color: var(--primary); border: 1px dashed #444; font-size: 1.5rem; font-weight: 900; width: 60px; text-align: center; padding: 8px 4px; border-radius: 6px; }
+        /* DISEÑO DE TARJETA ULTRA ANCHA V4.1.0 */
+        .log-card { background: #000; border-left: 5px solid var(--primary); border-radius: 8px; padding: 15px; display: flex; align-items: center; gap: 20px; width: 100%; box-sizing: border-box; }
+        .log-num-box { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
+        .log-num-box span { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .edit-num { background: #111; color: var(--primary); border: 2px dashed #444; font-size: 2rem; font-weight: 900; width: 80px; text-align: center; padding: 10px 5px; border-radius: 8px; transition: 0.2s; }
         .edit-num:focus { border-color: var(--primary); outline: none; background: #222; }
         
-        .log-details { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; text-align: left; }
-        .log-raw { font-size: 0.8rem; color: #a4b0be; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .log-raw strong { color: var(--text-muted); font-weight: normal; font-style: normal; }
-        .log-name { font-size: 1.05rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .log-dance { font-size: 0.85rem; color: var(--success); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .log-times-mini { display: flex; flex-direction: column; font-family: monospace; font-size: 0.75rem; text-align: right; min-width: 60px; }
-        .time-in { color: var(--success); margin-bottom: 4px; }
-        .time-out { color: var(--accent); }
+        .log-details { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+        .log-raw { font-size: 0.85rem; color: #a4b0be; font-style: italic; border-bottom: 1px solid #333; padding-bottom: 6px; margin-bottom: 2px; }
+        .log-name { font-size: 1.2rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .log-dance { font-size: 0.95rem; color: var(--success); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .btn-export { background: #3742fa; color: white; width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; margin-top: 15px; letter-spacing: 1px; }
+        .btn-export { background: #3742fa; color: white; width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; margin-top: 15px; letter-spacing: 1px; transition: 0.2s; }
+        .btn-export:active { transform: scale(0.98); }
 
         .floating-controls { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(10px); padding: 15px 20px; display: flex; gap: 10px; border-top: 1px solid #333; z-index: 1000; justify-content: center; }
-        .ctrl-btn { flex: 1; max-width: 200px; padding: 15px; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .ctrl-btn { flex: 1; max-width: 250px; padding: 15px; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .ctrl-btn svg { width: 24px; height: 24px; }
         
         .btn-record { background: var(--accent); color: white; }
@@ -78,7 +75,7 @@
 <body>
 
     <div class="top-bar">
-        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v4.0.0</span></h1>
+        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v4.1.0</span></h1>
         <div class="status-indicator" id="statusBox">
             <div class="dot" id="micDot"></div>
             <span id="statusText">Apagado</span>
@@ -87,7 +84,8 @@
 
     <div class="container">
         <div class="alert-box">
-            ⚠️ <strong>AVISO FIJO:</strong> Recuerda bajar el volumen de tu teléfono a cero absoluto para evitar los pitidos al grabar.
+            ⚠️ <strong>AVISO DE VOLUMEN:</strong> Recuerda bajar el volumen de tu teléfono a cero absoluto para evitar los pitidos de notificación al grabar.<br><br>
+            📄 <strong>ESTRUCTURA EXCEL:</strong> El programa extraerá automáticamente la Bailarina/Grupo de la <strong>Columna 2 (B)</strong> y la Obra de la <strong>Columna 3 (C)</strong>.
         </div>
 
         <div class="card">
@@ -113,10 +111,10 @@
         </div>
 
         <div class="card">
-            <div class="card-header">🎙 3. Registro de Danzas</div>
+            <div class="card-header">🎙 3. Registro de Danzas en Vivo</div>
             <div class="log-area" id="logContainer">
                 <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 20px;">
-                    El registro simplificado aparecerá aquí...
+                    El panel está listo. Presiona Grabar para comenzar...
                 </div>
             </div>
             <button class="btn-export" id="btnExport">📥 Descargar Excel (.XLSX)</button>
@@ -214,22 +212,21 @@
                 }
             }
 
-            // EXTRAE SOLO EL NOMBRE Y LA OBRA DEL EXCEL
+            // EXTRAE LA COLUMNA 2 (ÍNDICE 1) Y COLUMNA 3 (ÍNDICE 2)
             getCleanExcelData(num) {
-                let nombre = "Sin datos";
-                let obra = "";
+                let nombre = "Sin nombre";
+                let obra = "Sin obra";
                 
                 if (this.originalData.length > 1) {
                     const rowData = this.originalData.slice(1).find(row => String(row[0]).trim() === String(num).trim());
                     if (rowData) {
                         nombre = rowData[1] || "Sin nombre";
-                        obra = rowData[2] || "";
+                        obra = rowData[2] || "Sin obra";
                     }
                 }
                 return { nombre, obra };
             }
 
-            // ACTUALIZA LOS DATOS VISUALES AL EDITAR EL NÚMERO
             updateEntryNumber(id, newNum) {
                 const entry = this.logEvents.find(e => e.id === id);
                 if (entry) {
@@ -300,12 +297,11 @@
             }
 
             processAnnouncedNumber(num, timeStr, rawText) {
+                // Cerramos el tiempo anterior de forma invisible (sin actualizar la UI)
                 if (this.activeEntryId) {
                     const prevEntry = this.logEvents.find(e => e.id === this.activeEntryId);
                     if (prevEntry && !prevEntry.endTime) {
                         prevEntry.endTime = timeStr;
-                        const outSpan = document.getElementById(`out-${this.activeEntryId}`);
-                        if (outSpan) outSpan.innerText = timeStr;
                     }
                 }
 
@@ -321,10 +317,10 @@
                 });
                 
                 this.activeEntryId = newId;
-                this.renderCleanCard(newId, num, timeStr, rawText, cleanData);
+                this.renderCleanCard(newId, num, rawText, cleanData);
             }
 
-            renderCleanCard(id, num, timeStr, rawText, cleanData) {
+            renderCleanCard(id, num, rawText, cleanData) {
                 if (this.logEvents.length === 1) this.ui.logContainer.innerHTML = ''; 
                 
                 const div = document.createElement('div');
@@ -338,10 +334,6 @@
                         <span class="log-raw">🗣 "${rawText}"</span>
                         <span class="log-name" id="name-${id}">💃 ${cleanData.nombre}</span>
                         <span class="log-dance" id="dance-${id}">🎵 ${cleanData.obra}</span>
-                    </div>
-                    <div class="log-times-mini">
-                        <div class="time-in">▶ ${timeStr}</div>
-                        <div class="time-out">⏹ <span id="out-${id}">--:--:--</span></div>
                     </div>
                 `;
                 this.ui.logContainer.prepend(div);
@@ -384,8 +376,6 @@
                     if (prevEntry && !prevEntry.endTime) {
                         const now = new Date();
                         prevEntry.endTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
-                        const outSpan = document.getElementById(`out-${this.activeEntryId}`);
-                        if (outSpan) outSpan.innerText = prevEntry.endTime;
                     }
                 }
 
@@ -440,7 +430,7 @@
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Danzas_Sincronizadas");
                 
-                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_v4.xlsx");
+                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_v4.1.xlsx");
             }
         }
 
