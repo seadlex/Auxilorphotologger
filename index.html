@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Auxilior Photo v5.0.0 - XMP Ready</title>
+    <title>Auxilior Photo v5.1.0 - XMP Ready</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -31,6 +31,12 @@
         @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
 
         .container { padding: 20px; max-width: 900px; margin: 0 auto; }
+
+        /* CLAQUETA DE SINCRONIZACIÓN */
+        .sync-slate { background: #000; border: 2px dashed var(--success); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,255,136,0.1); }
+        .sync-slate-title { color: var(--success); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold; }
+        .sync-clock { font-size: 3.5rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,255,255,0.2); margin: 0; }
+        .sync-ms { font-size: 0.4em; color: var(--primary); }
 
         .alert-box { background: rgba(255, 215, 0, 0.05); border: 1px dashed var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; font-size: 0.9rem; text-align: left; margin-bottom: 20px; font-weight: 500; line-height: 1.6; }
         .alert-box strong { color: #fff; }
@@ -74,7 +80,7 @@
 <body>
 
     <div class="top-bar">
-        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v5.0.0</span></h1>
+        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v5.1.0</span></h1>
         <div class="status-indicator" id="statusBox">
             <div class="dot" id="micDot"></div>
             <span id="statusText">Apagado</span>
@@ -82,6 +88,12 @@
     </div>
 
     <div class="container">
+        
+        <div class="sync-slate">
+            <div class="sync-slate-title">📸 Toma una foto a este reloj 📸</div>
+            <div id="clock" class="sync-clock">00:00:00<span class="sync-ms">.000</span></div>
+        </div>
+
         <div class="alert-box">
             <strong>Nombres de Campos Soportados:</strong><br>
             Orden, Nombre, Obra, Academia, Modalidad, Coreógrafo, Tipo, Concurso.
@@ -136,6 +148,24 @@
     </div>
 
     <script>
+        // MOTOR DE RELOJ DE ALTA PRECISIÓN (Milisegundos)
+        function startHighPrecisionClock() {
+            function updateClock() {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                const ms = String(now.getMilliseconds()).padStart(3, '0');
+                
+                const clockEl = document.getElementById('clock');
+                if (clockEl) {
+                    clockEl.innerHTML = `${h}:${m}:${s}<span class="sync-ms">.${ms}</span>`;
+                }
+                requestAnimationFrame(updateClock);
+            }
+            updateClock();
+        }
+
         class TheaterLoggerV5 {
             constructor() {
                 this.originalData = [];
@@ -179,7 +209,6 @@
                             const workbook = XLSX.read(evt.target.result, {type: 'binary'});
                             this.originalData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
                             
-                            // Guardar cabeceras para búsqueda dinámica
                             if (this.originalData.length > 0) {
                                 this.excelHeaders = this.originalData[0].map(h => String(h).toLowerCase().trim());
                             }
@@ -217,13 +246,11 @@
                 }
             }
 
-            // EXTRACCIÓN DINÁMICA POR NOMBRE DE COLUMNA
             getCleanExcelData(num) {
                 let nombre = "Sin nombre";
                 let obra = "Sin obra";
                 
                 if (this.originalData.length > 1 && this.excelHeaders.length > 0) {
-                    // Buscar en qué índice están las columnas clave
                     const idxNombre = this.excelHeaders.findIndex(h => h.includes('nombre') || h.includes('participante'));
                     const idxObra = this.excelHeaders.findIndex(h => h.includes('obra'));
 
@@ -307,7 +334,6 @@
             }
 
             processAnnouncedNumber(num, timeStr, rawText) {
-                // Cerramos el tiempo de la danza anterior
                 if (this.activeEntryId) {
                     const prevEntry = this.logEvents.find(e => e.id === this.activeEntryId);
                     if (prevEntry && !prevEntry.endTime) {
@@ -381,7 +407,6 @@
                 this.recognition.stop();
                 this.releaseWakeLock();
 
-                // Cerrar última danza
                 if (this.activeEntryId) {
                     const prevEntry = this.logEvents.find(e => e.id === this.activeEntryId);
                     if (prevEntry && !prevEntry.endTime) {
@@ -395,31 +420,24 @@
                 this.ui.btnStop.style.display = 'none';
             }
 
-            // CALCULO DEL ERROR DE LA CÁMARA
             calcularDesfaseMs() {
-                const eVal = this.ui.timeExif.value; // Hora interna foto (ej. 15:05:00)
-                const aVal = this.ui.timeApp.value;  // Hora real en pantalla (ej. 15:00:00)
+                const eVal = this.ui.timeExif.value;
+                const aVal = this.ui.timeApp.value;
                 if (!eVal || !aVal) return 0;
-                
                 const dExif = new Date("1970-01-01T" + eVal + "Z");
                 const dApp = new Date("1970-01-01T" + aVal + "Z");
                 return dExif.getTime() - dApp.getTime();
             }
 
-            // APLICA EL DESFASE Y CREA FORMATO AAAA-MM-DD HH:MM:SS
             aplicarDesfaseCompleto(horaStr, ms) {
                 if (!horaStr) return "";
                 
                 let today = new Date();
                 let [h, m, s] = horaStr.split(':');
                 
-                // Creamos un objeto Date basado en el día actual y la hora en que el app escuchó
                 let d = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(h), parseInt(m), parseInt(s));
-                
-                // Le sumamos/restamos el error de la cámara
                 d.setTime(d.getTime() + ms);
                 
-                // Formateamos para el metadato XMP
                 const pad = n => String(n).padStart(2, '0');
                 return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
             }
@@ -433,7 +451,6 @@
                 const desfaseMs = this.calcularDesfaseMs();
                 let finalData = this.originalData.map(row => [...row]);
                 
-                // Solo las columnas finales necesarias, con los nombres solicitados
                 finalData[0].push("Inicio_danza", "Fin_danza");
 
                 for (let i = 1; i < finalData.length; i++) {
@@ -445,7 +462,6 @@
                         let camOut = logMatch.endTime ? this.aplicarDesfaseCompleto(logMatch.endTime, desfaseMs) : "";
                         finalData[i].push(camIn, camOut);
                     } else {
-                        // Si la danza no fue registrada, dejamos las columnas en blanco
                         finalData[i].push("", "");
                     }
                 }
@@ -454,11 +470,14 @@
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Tiempos_XMP");
                 
-                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_XMP_v5.xlsx");
+                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_XMP_v5.1.xlsx");
             }
         }
 
-        window.onload = () => { const app = new TheaterLoggerV5(); };
+        window.onload = () => { 
+            startHighPrecisionClock();
+            const app = new TheaterLoggerV5(); 
+        };
     </script>
 </body>
 </html>
