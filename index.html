@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Podium Audio Log - Smart Sync</title>
+    <title>Auxilior Photo - Smart Sync v1.1.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; margin: 0; }
@@ -26,12 +26,16 @@
         .btn { padding: 18px 30px; font-size: 1.2em; font-weight: bold; cursor: pointer; border-radius: 50px; border: none; width: 100%; max-width: 600px; margin: 10px auto; display: block; transition: 0.2s; }
         .start { background: #e50914; color: white; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); }
         .stop { background: #333; color: white; border: 2px solid #e50914; }
+        .pause { background: #ffcc00; color: #000; border: 2px solid #ffcc00; }
         .export { background: #007bff; color: white; margin-top: 20px; }
         
-        #log { text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; height: 35vh; overflow-y: auto; margin: 15px auto; border: 1px solid #333; width: 100%; max-width: 600px; box-sizing: border-box; }
+        .aviso-fijo { text-align:center; color:#ffcc00; margin: 15px auto; max-width: 600px; font-size: 0.9em; border: 1px dashed #ffcc00; padding: 10px; border-radius: 5px; background: #1a1a1a;}
+
+        #log { text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; height: 35vh; overflow-y: auto; margin: 0 auto 15px auto; border: 1px solid #333; width: 100%; max-width: 600px; box-sizing: border-box; }
         .entry { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 10px; padding: 12px; border-radius: 6px; border-left: 4px solid #ffcc00; }
         .entry-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
-        .time { color: #888; font-family: monospace; font-size: 1em; }
+        .time-col { display: flex; flex-direction: column; min-width: 70px; font-size: 0.9em; }
+        .time { color: #888; font-family: monospace; }
         
         .edit-num { background: #000; color: #ffcc00; border: 1px dashed #666; font-size: 1.3em; font-weight: bold; width: 70px; text-align: center; padding: 8px; border-radius: 4px; }
         .edit-num:focus { border-color: #ffcc00; outline: none; background: #111; }
@@ -46,7 +50,7 @@
 <body>
 
     <div class="header">
-        <h2 style="margin: 0; color: #fff;">PODIUM <span style="color:#ffcc00">Logger</span></h2>
+        <h2 style="margin: 0; color: #fff;">AUXILIOR <span style="color:#ffcc00">Photo</span> <small style="font-size: 0.4em; color: #888;">v1.1.0</small></h2>
         <div id="clock" class="clock">00:00:00</div>
     </div>
 
@@ -81,11 +85,15 @@
     </div>
 
     <button id="startBtn" class="btn start">⏺ INICIAR GRABACIÓN</button>
-    <button id="pauseBtn" class="btn pause" style="display:none; background: #ffcc00; color: #000; border: 2px solid #ffcc00;">⏸ PAUSAR (Música)</button>
+    <button id="pauseBtn" class="btn pause" style="display:none;">⏸ PAUSAR (Música)</button>
     <button id="stopBtn" class="btn stop" style="display:none;">⏹ DETENER</button>
     
+    <div class="aviso-fijo">
+        ⚠️ AVISO: Recuerda bajar el volumen de tu teléfono a cero para evitar pitidos.
+    </div>
+
     <div id="log">
-        <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...<br><small>(Baja el volumen de tu teléfono a cero para evitar pitidos)</small></div>
+        <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...</div>
     </div>
 
     <button id="exportBtn" class="btn export">⬇ DESCARGAR CSV FINAL</button>
@@ -173,6 +181,7 @@
             recognition.lang = 'es-PY';
 
             recognition.onresult = function(event) {
+                // Si el botón está en pausa, ignoramos el audio
                 if (isPaused) return;
 
                 const result = event.results[event.results.length - 1][0].transcript;
@@ -184,20 +193,20 @@
                     if(logEntries.length === 0) logDiv.innerHTML = ''; 
                     
                     numbers.forEach(num => {
-                        // Cierra el evento anterior al escuchar un número nuevo
+                        // Al escuchar un número, cierra la danza anterior
                         if (logEntries.length > 0) {
                             let lastEntry = logEntries[logEntries.length - 1];
-                            if (!lastEntry.endTime) {
+                            if (lastEntry.endTime === "") {
                                 lastEntry.endTime = time;
                                 let finSpan = document.getElementById('fin-' + lastEntry.id);
-                                if(finSpan) finSpan.innerText = `Fin: ${time}`;
+                                if(finSpan) finSpan.innerText = time;
                             }
                         }
 
                         const entryId = Date.now() + Math.floor(Math.random() * 1000);
                         const datosCompletos = window.buscarEnExcel(num); 
                         
-                        // Guardamos startTime y dejamos endTime vacío
+                        // Guardamos startTime, dejamos endTime vacío
                         logEntries.push({ id: entryId, startTime: time, endTime: "", num: num, raw: result, fullData: datosCompletos });
                         
                         const div = document.createElement('div');
@@ -205,9 +214,9 @@
                         div.id = 'entry-' + entryId;
                         div.innerHTML = `
                             <div class="entry-left">
-                                <div style="display:flex; flex-direction:column;">
-                                    <span class="time" style="color:#00ff88;">Inicio: ${time}</span>
-                                    <span class="time" id="fin-${entryId}" style="color:#ff4444; font-size: 0.9em;">Fin: --:--:--</span>
+                                <div class="time-col">
+                                    <span class="time" style="color:#00ff88;">In: ${time}</span>
+                                    <span class="time" style="color:#ff4444;">Out: <span id="fin-${entryId}">--:--:--</span></span>
                                 </div>
                                 <input type="number" class="edit-num" value="${num}" onchange="actualizarNumero(${entryId}, this.value)">
                                 <div style="display:flex; flex-direction:column; text-align:left;">
@@ -242,12 +251,10 @@
                     this.innerText = '▶ REANUDAR (Hablar)';
                     this.style.background = '#444';
                     this.style.color = '#fff';
-                    this.style.border = '2px solid #666';
                 } else {
                     this.innerText = '⏸ PAUSAR (Música)';
                     this.style.background = '#ffcc00';
                     this.style.color = '#000';
-                    this.style.border = '2px solid #ffcc00';
                 }
             };
 
@@ -256,15 +263,15 @@
                 isRecording = false;
                 isPaused = false;
 
-                // Si se detiene manualmente, cierra la última danza
+                // Al detener, cierra definitivamente el tiempo de la última danza
                 if (logEntries.length > 0) {
                     let lastEntry = logEntries[logEntries.length - 1];
-                    if (!lastEntry.endTime) {
+                    if (lastEntry.endTime === "") {
                         const d = new Date();
                         const time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
                         lastEntry.endTime = time;
                         let finSpan = document.getElementById('fin-' + lastEntry.id);
-                        if(finSpan) finSpan.innerText = `Fin: ${time}`;
+                        if(finSpan) finSpan.innerText = time;
                     }
                 }
 
@@ -298,9 +305,10 @@
             const timeApp = document.getElementById('timeApp').value;
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
-            // Mantiene la estructura base de tu código original añadiendo las de Fin 
-            // y utilizando punto y coma (;) como separador para la localización
-            let csvContent = "data:text/csv;charset=utf-8,Inicio_App;Inicio_Camara;Fin_App;Fin_Camara;Numero;Datos_Completos;Transcripcion\n";
+            // Mantiene exactamente la lógica original pero agrega las columnas de Fin
+            // Se utiliza \uFEFF para asegurar que Excel reconozca correctamente el texto en UTF-8
+            // Se utiliza punto y coma (;) como separador nativo.
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFFInicio_App;Inicio_Camara;Fin_App;Fin_Camara;Numero;Datos_Completos;Transcripcion\n";
             
             logEntries.forEach(e => { 
                 let inicioC = aplicarDesfase(e.startTime, desfaseMs);
@@ -313,7 +321,7 @@
             
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI(csvContent));
-            link.setAttribute("download", "PodiumLog_" + new Date().getTime() + ".csv");
+            link.setAttribute("download", "AuxiliorPhoto_Log_" + new Date().getTime() + ".csv");
             document.body.appendChild(link);
             link.click();
         };
