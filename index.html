@@ -9,10 +9,10 @@
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #e0e0e0; text-align: center; padding: 20px; margin: 0; }
         .header { margin-bottom: 20px; }
         .clock { font-size: 3em; font-weight: bold; color: #00ff88; margin: 10px auto; border: 2px solid #333; padding: 10px 20px; border-radius: 10px; display: inline-block; letter-spacing: 2px; background: #000; }
-        
+
         .ref-container { width: 100%; max-width: 600px; background: #1e1e1e; padding: 15px; border-radius: 8px; margin: 0 auto 15px auto; border: 1px solid #333; text-align: left; box-sizing: border-box; }
         .ref-title { font-size: 0.85em; color: #aaa; margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 1px; }
-        
+
         .sheets-row { display: flex; gap: 10px; }
         .sheets-input { flex-grow: 1; padding: 12px; background: #000; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 1em; box-sizing: border-box; }
         .sheets-btn { background: #0f9d58; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
@@ -27,20 +27,27 @@
         .start { background: #e50914; color: white; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); }
         .stop { background: #333; color: white; border: 2px solid #e50914; }
         .export { background: #007bff; color: white; margin-top: 20px; }
-        
+
         #log { text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; height: 35vh; overflow-y: auto; margin: 15px auto; border: 1px solid #333; width: 100%; max-width: 600px; box-sizing: border-box; }
         .entry { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 10px; padding: 12px; border-radius: 6px; border-left: 4px solid #ffcc00; }
         .entry-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
         .time { color: #888; font-family: monospace; font-size: 1em; }
-        
+
         .edit-num { background: #000; color: #ffcc00; border: 1px dashed #666; font-size: 1.3em; font-weight: bold; width: 70px; text-align: center; padding: 8px; border-radius: 4px; }
         .edit-num:focus { border-color: #ffcc00; outline: none; background: #111; }
-        
+
         .raw-text { color: #aaa; font-size: 0.9em; font-style: italic; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
         .matched-data { color: #00ff88; font-size: 0.8em; font-weight: bold; margin-top: 5px; display: block; }
         .delete-btn { background: transparent; border: none; color: #ff4444; font-size: 1.5em; cursor: pointer; padding: 5px 10px; }
-        
+
         input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+        .pause { background: #ff8800; color: white; box-shadow: 0 4px 15px rgba(255, 136, 0, 0.4); }
+        .audio-export { background: #9b59b6; color: white; margin-top: 10px; }
+        .rec-indicator { display: inline-block; width: 12px; height: 12px; background: #e50914; border-radius: 50%; margin-right: 8px; animation: blink 1s infinite; vertical-align: middle; }
+        .rec-indicator.paused { background: #ff8800; animation: none; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .audio-status { font-size: 0.8em; color: #888; margin-top: 5px; max-width: 600px; margin-left: auto; margin-right: auto; }
     </style>
 </head>
 <body>
@@ -61,16 +68,16 @@
     </script>
 
     <div class="ref-container">
-        <span class="ref-title">📁 1. Cargar Archivo de Excel/CSV (Orden del día)</span>
+        <span class="ref-title">1. Cargar Archivo de Excel/CSV (Orden del dia)</span>
         <input type="file" id="fileUpload" accept=".xlsx, .xls, .csv, .ods">
         <div id="excel-preview"></div>
     </div>
 
     <div class="ref-container">
-        <span class="ref-title">📸 2. Calibración de Cámara</span>
+        <span class="ref-title">2. Calibracion de Camara</span>
         <div style="display: flex; gap: 10px; margin-bottom: 5px;">
             <div style="flex: 1;">
-                <small style="color:#888; display:block; margin-bottom:3px;">Hora EXIF de cámara</small>
+                <small style="color:#888; display:block; margin-bottom:3px;">Hora EXIF de camara</small>
                 <input type="time" step="1" id="timeExif" class="sheets-input">
             </div>
             <div style="flex: 1;">
@@ -80,39 +87,132 @@
         </div>
     </div>
 
-    <button id="startBtn" class="btn start">⏺ INICIAR GRABACIÓN</button>
-    <button id="stopBtn" class="btn stop" style="display:none;">⏹ DETENER</button>
-    
+    <button id="startBtn" class="btn start">INICIAR GRABACION</button>
+    <button id="pauseBtn" class="btn pause" style="display:none;">PAUSAR ESCUCHA (musica sonando)</button>
+    <button id="stopBtn" class="btn stop" style="display:none;">DETENER</button>
+    <div id="audioStatus" class="audio-status"></div>
+
     <div id="log">
-        <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...<br><small>(Baja el volumen de tu teléfono a cero para evitar pitidos)</small></div>
+        <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...<br><small>(Baja el volumen de tu telefono a cero para evitar pitidos)</small></div>
     </div>
 
-    <button id="exportBtn" class="btn export">⬇ DESCARGAR CSV FINAL</button>
+    <button id="exportBtn" class="btn export">DESCARGAR ARCHIVO FINAL</button>
+    <button id="exportAudioBtn" class="btn audio-export" style="display:none;">DESCARGAR AUDIO COMPLETO</button>
 
     <script>
         let logEntries = [];
         let loadedFileName = "Ninguno";
+        let loadedFileExtension = "csv";
         let excelHeaders = [];
         let excelDataRows = [];
+        let originalWorkbook = null;
         const logDiv = document.getElementById('log');
+
+        // --- GRABACION DE AUDIO ---
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let audioStream = null;
+        let audioStartTime = null;
+        let audioMarkers = [];
+
+        async function iniciarGrabacionAudio() {
+            try {
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                let mimeType = 'audio/webm;codecs=opus';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'audio/webm';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = '';
+                    }
+                }
+                mediaRecorder = new MediaRecorder(audioStream, mimeType ? { mimeType: mimeType } : {});
+                audioChunks = [];
+                audioMarkers = [];
+                audioStartTime = Date.now();
+
+                mediaRecorder.ondataavailable = function(event) {
+                    if (event.data.size > 0) audioChunks.push(event.data);
+                };
+
+                mediaRecorder.start(1000);
+                document.getElementById('audioStatus').innerHTML = '<span class="rec-indicator"></span>Grabando audio...';
+                document.getElementById('exportAudioBtn').style.display = 'block';
+            } catch(err) {
+                document.getElementById('audioStatus').innerText = 'No se pudo acceder al microfono para grabar audio.';
+            }
+        }
+
+        function detenerGrabacionAudio() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                audioStream.getTracks().forEach(t => t.stop());
+                document.getElementById('audioStatus').innerText = 'Grabacion de audio finalizada. Puede descargar el archivo.';
+            }
+        }
+
+        function agregarMarcaAudio(num, tiempo) {
+            if (audioStartTime) {
+                let offsetSeg = ((Date.now() - audioStartTime) / 1000).toFixed(1);
+                audioMarkers.push({ numero: num, tiempo: tiempo, offsetSegundos: offsetSeg });
+            }
+        }
+
+        document.getElementById('exportAudioBtn').onclick = function() {
+            if (audioChunks.length === 0) {
+                alert('No hay audio grabado.');
+                return;
+            }
+            const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            let ext = 'webm';
+            if (mediaRecorder.mimeType && mediaRecorder.mimeType.includes('mp4')) ext = 'mp4';
+            link.download = 'PodiumAudio_' + new Date().getTime() + '.' + ext;
+            document.body.appendChild(link);
+            link.click();
+            URL.revokeObjectURL(url);
+
+            if (audioMarkers.length > 0) {
+                let marcasTxt = "Marcas de tiempo en el audio:\n";
+                marcasTxt += "Segundo | Hora_App | Numero\n";
+                marcasTxt += "--------|----------|--------\n";
+                audioMarkers.forEach(m => {
+                    marcasTxt += m.offsetSegundos + "s | " + m.tiempo + " | " + m.numero + "\n";
+                });
+                const blobTxt = new Blob([marcasTxt], { type: 'text/plain' });
+                const urlTxt = URL.createObjectURL(blobTxt);
+                const linkTxt = document.createElement('a');
+                linkTxt.href = urlTxt;
+                linkTxt.download = 'PodiumAudio_Marcas_' + new Date().getTime() + '.txt';
+                document.body.appendChild(linkTxt);
+                linkTxt.click();
+                URL.revokeObjectURL(urlTxt);
+            }
+        };
 
         // --- LECTURA Y PROCESAMIENTO DEL EXCEL ---
         document.getElementById('fileUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
             loadedFileName = file.name;
+            const dotIndex = file.name.lastIndexOf('.');
+            if (dotIndex > -1) {
+                loadedFileExtension = file.name.substring(dotIndex + 1).toLowerCase();
+            }
             const reader = new FileReader();
-            
+
             reader.onload = function(evt) {
                 try {
                     const data = evt.target.result;
                     const workbook = XLSX.read(data, {type: 'binary'});
+                    originalWorkbook = workbook;
                     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    
+
                     // Extraer datos estructurados para buscar luego
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
                     if (jsonData.length > 0) {
-                        excelHeaders = jsonData[0]; // La fila 1 (Ej: "Número", "Bailarina", "Obra")
+                        excelHeaders = jsonData[0]; // La fila 1 (Ej: "Numero", "Bailarina", "Obra")
                         excelDataRows = jsonData.slice(1); // El resto de las filas
                     }
 
@@ -125,11 +225,11 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- FUNCIÓN PARA BUSCAR EL NÚMERO EN EL EXCEL ---
+        // --- FUNCION PARA BUSCAR EL NUMERO EN EL EXCEL ---
         window.buscarEnExcel = function(num) {
-            if (excelDataRows.length === 0) return `Número: ${num}`; // Si no hay excel cargado
+            if (excelDataRows.length === 0) return `Numero: ${num}`; // Si no hay excel cargado
 
-            // Buscar la fila donde la primera columna coincida con el número hablado
+            // Buscar la fila donde la primera columna coincida con el numero hablado
             const fila = excelDataRows.find(row => String(row[0]).trim() === String(num).trim());
 
             if (fila) {
@@ -139,19 +239,25 @@
                         detalles.push(`${excelHeaders[i]}: ${fila[i]}`);
                     }
                 }
-                return detalles.join(", "); // Ej: "Número: 21, Bailarina: Pepa, Obra: Las maravillas"
+                return detalles.join(", "); // Ej: "Numero: 21, Bailarina: Pepa, Obra: Las maravillas"
             } else {
-                return `Número: ${num} (No encontrado en Excel)`;
+                return `Numero: ${num} (No encontrado en Excel)`;
             }
         };
 
-        // --- EDICIÓN EN VIVO ---
+        // --- FUNCION PARA OBTENER FILA ORIGINAL DEL EXCEL ---
+        window.obtenerFilaExcel = function(num) {
+            if (excelDataRows.length === 0) return null;
+            return excelDataRows.find(row => String(row[0]).trim() === String(num).trim()) || null;
+        };
+
+        // --- EDICION EN VIVO ---
         window.actualizarNumero = function(id, nuevoValor) {
             const entry = logEntries.find(e => e.id === id);
             if(entry) {
                 entry.num = nuevoValor;
                 entry.fullData = window.buscarEnExcel(nuevoValor); // Re-calcula la fila completa
-                
+
                 // Actualiza visualmente el texto verde
                 const spanDatos = document.getElementById('data-' + id);
                 if(spanDatos) spanDatos.innerText = entry.fullData;
@@ -167,7 +273,9 @@
         // --- RECONOCIMIENTO DE VOZ ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition;
-        
+        let isRecording = false;
+        let isPaused = false;
+
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.continuous = true;
@@ -175,20 +283,22 @@
             recognition.lang = 'es-PY';
 
             recognition.onresult = function(event) {
+                if (isPaused) return;
                 const result = event.results[event.results.length - 1][0].transcript;
                 const d = new Date();
                 const time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
                 const numbers = result.match(/\d+/g);
 
                 if (numbers) {
-                    if(logEntries.length === 0) logDiv.innerHTML = ''; 
-                    
+                    if(logEntries.length === 0) logDiv.innerHTML = '';
+
                     numbers.forEach(num => {
                         const entryId = Date.now() + Math.floor(Math.random() * 1000);
-                        const datosCompletos = window.buscarEnExcel(num); // Cruce automático de datos
-                        
+                        const datosCompletos = window.buscarEnExcel(num);
+
                         logEntries.push({ id: entryId, time: time, num: num, raw: result, fullData: datosCompletos });
-                        
+                        agregarMarcaAudio(num, time);
+
                         const div = document.createElement('div');
                         div.className = 'entry';
                         div.id = 'entry-' + entryId;
@@ -201,49 +311,72 @@
                                     <span class="matched-data" id="data-${entryId}">${datosCompletos}</span>
                                 </div>
                             </div>
-                            <button class="delete-btn" onclick="eliminarRegistro(${entryId})">✖</button>
+                            <button class="delete-btn" onclick="eliminarRegistro(${entryId})">x</button>
                         `;
                         logDiv.prepend(div);
                     });
                 }
             };
 
-            let isRecording = false;
-            recognition.onend = function() { if(isRecording) { try { recognition.start(); } catch(e) {} } };
+            recognition.onend = function() { if(isRecording && !isPaused) { try { recognition.start(); } catch(e) {} } };
 
             document.getElementById('startBtn').onclick = function() {
                 try {
                     recognition.start();
                     isRecording = true;
+                    isPaused = false;
                     document.getElementById('startBtn').style.display = 'none';
                     document.getElementById('stopBtn').style.display = 'block';
-                } catch(e) { alert("Error. Recuerda usar Chrome y dar permisos."); }
+                    document.getElementById('pauseBtn').style.display = 'block';
+                    iniciarGrabacionAudio();
+                } catch(e) { alert("Error. Recuerde usar Chrome y dar permisos."); }
+            };
+
+            document.getElementById('pauseBtn').onclick = function() {
+                if (!isPaused) {
+                    isPaused = true;
+                    try { recognition.stop(); } catch(e) {}
+                    document.getElementById('pauseBtn').innerText = 'REANUDAR ESCUCHA';
+                    document.getElementById('pauseBtn').style.background = '#27ae60';
+                    let statusEl = document.getElementById('audioStatus');
+                    statusEl.innerHTML = '<span class="rec-indicator paused"></span>Escucha pausada (audio sigue grabando)';
+                } else {
+                    isPaused = false;
+                    try { recognition.start(); } catch(e) {}
+                    document.getElementById('pauseBtn').innerText = 'PAUSAR ESCUCHA (musica sonando)';
+                    document.getElementById('pauseBtn').style.background = '#ff8800';
+                    let statusEl = document.getElementById('audioStatus');
+                    statusEl.innerHTML = '<span class="rec-indicator"></span>Grabando audio...';
+                }
             };
 
             document.getElementById('stopBtn').onclick = function() {
                 recognition.stop();
                 isRecording = false;
+                isPaused = false;
                 document.getElementById('startBtn').style.display = 'block';
                 document.getElementById('stopBtn').style.display = 'none';
+                document.getElementById('pauseBtn').style.display = 'none';
+                detenerGrabacionAudio();
             };
         } else {
             document.getElementById('startBtn').onclick = function() { alert("Tu navegador no soporta voz. Usa Chrome."); };
         }
 
-        // --- CÁLCULOS Y EXPORTACIÓN ---
+        // --- CALCULOS Y EXPORTACION ---
         function calcularDesfase(exifStr, appStr) {
             if(!exifStr || !appStr) return 0;
             let dExif = new Date("1970-01-01T" + exifStr + "Z");
             let dApp = new Date("1970-01-01T" + appStr + "Z");
-            return dExif.getTime() - dApp.getTime(); 
+            return dExif.getTime() - dApp.getTime();
         }
 
         function aplicarDesfase(horaStr, desfaseMs) {
             if(desfaseMs === 0) return horaStr;
             let d = new Date("1970-01-01T" + horaStr + "Z");
             d.setTime(d.getTime() + desfaseMs);
-            return String(d.getUTCHours()).padStart(2, '0') + ':' + 
-                   String(d.getUTCMinutes()).padStart(2, '0') + ':' + 
+            return String(d.getUTCHours()).padStart(2, '0') + ':' +
+                   String(d.getUTCMinutes()).padStart(2, '0') + ':' +
                    String(d.getUTCSeconds()).padStart(2, '0');
         }
 
@@ -252,22 +385,109 @@
             const timeApp = document.getElementById('timeApp').value;
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
-            // CSV Header - Ahora con columna 'Datos_Completos'
-            let csvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion\n";
-            
-            logEntries.forEach(e => { 
+            // Columnas nuevas generadas por el programa
+            const newCols = ['Tiempo_App', 'Tiempo_Camara', 'Transcripcion', 'Audio_Marca_Seg'];
+
+            // Crear mapa de numero -> entradas del log (puede haber multiples por numero)
+            let logPorNumero = {};
+            logEntries.forEach(e => {
                 let tiempoCamara = aplicarDesfase(e.time, desfaseMs);
-                // Escapamos las comillas dobles en caso de que los datos del excel las contengan
-                let datosSeguros = e.fullData.replace(/"/g, '""'); 
-                
-                csvContent += `${e.time},${tiempoCamara},${e.num},"${datosSeguros}","${e.raw}"\n`; 
+                let marcaAudio = '';
+                let marca = audioMarkers.find(m => m.numero === e.num && m.tiempo === e.time);
+                if (marca) marcaAudio = marca.offsetSegundos + 's';
+
+                if (!logPorNumero[String(e.num).trim()]) {
+                    logPorNumero[String(e.num).trim()] = [];
+                }
+                logPorNumero[String(e.num).trim()].push({
+                    tiempoApp: e.time,
+                    tiempoCamara: tiempoCamara,
+                    transcripcion: e.raw,
+                    marcaAudio: marcaAudio
+                });
             });
-            
-            const link = document.createElement("a");
-            link.setAttribute("href", encodeURI(csvContent));
-            link.setAttribute("download", "PodiumLog_" + new Date().getTime() + ".csv");
-            document.body.appendChild(link);
-            link.click();
+
+            if (excelHeaders.length > 0 && excelDataRows.length > 0) {
+                // --- EXPORTAR CON LA ESTRUCTURA ORIGINAL + COLUMNAS NUEVAS ---
+                let outputData = [];
+
+                // Header: columnas originales + columnas nuevas
+                let headerRow = excelHeaders.slice();
+                newCols.forEach(c => headerRow.push(c));
+                outputData.push(headerRow);
+
+                // Filas: cada fila original + datos del log si existen
+                excelDataRows.forEach(row => {
+                    let fila = [];
+                    for (let i = 0; i < excelHeaders.length; i++) {
+                        fila.push(row[i] !== undefined ? row[i] : "");
+                    }
+                    let numKey = String(row[0]).trim();
+                    if (logPorNumero[numKey] && logPorNumero[numKey].length > 0) {
+                        let logData = logPorNumero[numKey].shift();
+                        fila.push(logData.tiempoApp);
+                        fila.push(logData.tiempoCamara);
+                        fila.push(logData.transcripcion);
+                        fila.push(logData.marcaAudio);
+                    } else {
+                        newCols.forEach(() => fila.push(""));
+                    }
+                    outputData.push(fila);
+                });
+
+                // Agregar entradas del log que NO coincidieron con ninguna fila del excel
+                Object.keys(logPorNumero).forEach(numKey => {
+                    logPorNumero[numKey].forEach(logData => {
+                        let fila = [];
+                        for (let i = 0; i < excelHeaders.length; i++) {
+                            if (i === 0) fila.push(numKey);
+                            else fila.push("");
+                        }
+                        fila.push(logData.tiempoApp);
+                        fila.push(logData.tiempoCamara);
+                        fila.push(logData.transcripcion);
+                        fila.push(logData.marcaAudio);
+                        outputData.push(fila);
+                    });
+                });
+
+                // Exportar en el mismo formato que el archivo original
+                let ws = XLSX.utils.aoa_to_sheet(outputData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "PodiumLog");
+
+                let exportExt = loadedFileExtension;
+                let bookType = 'xlsx';
+                if (exportExt === 'csv') bookType = 'csv';
+                else if (exportExt === 'xls') bookType = 'xls';
+                else if (exportExt === 'ods') bookType = 'ods';
+                else bookType = 'xlsx';
+
+                let baseName = loadedFileName.substring(0, loadedFileName.lastIndexOf('.')) || loadedFileName;
+                let outputFileName = baseName + '_PodiumLog.' + (bookType === 'xls' ? 'xls' : exportExt);
+
+                XLSX.writeFile(wb, outputFileName, { bookType: bookType });
+
+            } else {
+                // --- SIN ARCHIVO CARGADO: exportar solo los datos del log como CSV ---
+                let csvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion,Audio_Marca_Seg\n";
+
+                logEntries.forEach(e => {
+                    let tiempoCamara = aplicarDesfase(e.time, desfaseMs);
+                    let datosSeguros = e.fullData.replace(/"/g, '""');
+                    let marcaAudio = '';
+                    let marca = audioMarkers.find(m => m.numero === e.num && m.tiempo === e.time);
+                    if (marca) marcaAudio = marca.offsetSegundos + 's';
+
+                    csvContent += `${e.time},${tiempoCamara},${e.num},"${datosSeguros}","${e.raw}",${marcaAudio}\n`;
+                });
+
+                const link = document.createElement("a");
+                link.setAttribute("href", encodeURI(csvContent));
+                link.setAttribute("download", "PodiumLog_" + new Date().getTime() + ".csv");
+                document.body.appendChild(link);
+                link.click();
+            }
         };
     </script>
 </body>
