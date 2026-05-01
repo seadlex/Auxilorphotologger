@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Auxilior Photo v5.1.0 - XMP Ready</title>
+    <title>Auxilior Photo v5.2.0 - XMP Ready</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -32,17 +32,19 @@
 
         .container { padding: 20px; max-width: 900px; margin: 0 auto; }
 
-        /* CLAQUETA DE SINCRONIZACIÓN */
-        .sync-slate { background: #000; border: 2px dashed var(--success); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,255,136,0.1); }
-        .sync-slate-title { color: var(--success); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold; }
-        .sync-clock { font-size: 3.5rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,255,255,0.2); margin: 0; }
-        .sync-ms { font-size: 0.4em; color: var(--primary); }
+        /* NUEVO DISEÑO DEL RELOJ */
+        .sync-slate { background: #0d0d0f; border: 1px solid #2f3542; border-top: 4px solid var(--primary); border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        .sync-slate-title { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .sync-clock { font-size: 4rem; font-weight: 800; color: var(--text-main); letter-spacing: 3px; margin: 0; font-variant-numeric: tabular-nums; }
 
         .alert-box { background: rgba(255, 215, 0, 0.05); border: 1px dashed var(--primary); color: var(--primary); padding: 15px; border-radius: 8px; font-size: 0.9rem; text-align: left; margin-bottom: 20px; font-weight: 500; line-height: 1.6; }
         .alert-box strong { color: #fff; }
 
         .card { background: var(--surface); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #2f3542; }
-        .card-header { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .card-header { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 15px; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+        #btnManual { background: transparent; border: 1px solid var(--text-muted); color: var(--text-main); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.2s; }
+        #btnManual:hover { border-color: var(--primary); color: var(--primary); }
 
         .file-upload-wrapper input[type="file"] { width: 100%; padding: 12px; background: #000; border: 1px solid #333; border-radius: 8px; color: var(--text-main); font-family: monospace; box-sizing: border-box; }
         
@@ -80,7 +82,7 @@
 <body>
 
     <div class="top-bar">
-        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v5.1.0</span></h1>
+        <h1 class="app-title">AUXILIOR <span class="brand">Photo</span><span class="version">v5.2.0</span></h1>
         <div class="status-indicator" id="statusBox">
             <div class="dot" id="micDot"></div>
             <span id="statusText">Apagado</span>
@@ -90,8 +92,14 @@
     <div class="container">
         
         <div class="sync-slate">
-            <div class="sync-slate-title">📸 Toma una foto a este reloj 📸</div>
-            <div id="clock" class="sync-clock">00:00:00<span class="sync-ms">.000</span></div>
+            <div class="sync-slate-title">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                CALIBRACIÓN DE CÁMARA
+            </div>
+            <div id="clock" class="sync-clock">00:00:00</div>
         </div>
 
         <div class="alert-box">
@@ -122,7 +130,10 @@
         </div>
 
         <div class="card">
-            <div class="card-header">🎙 3. Registro de Danzas en Vivo</div>
+            <div class="card-header">
+                <span style="display: flex; align-items: center; gap: 8px;">🎙 3. Registro de Danzas</span>
+                <button id="btnManual">➕ AGREGAR MANUAL</button>
+            </div>
             <div class="log-area" id="logContainer">
                 <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 20px;">
                     El panel está listo. Presiona Grabar para comenzar...
@@ -148,20 +159,19 @@
     </div>
 
     <script>
-        // MOTOR DE RELOJ DE ALTA PRECISIÓN (Milisegundos)
-        function startHighPrecisionClock() {
+        // Reloj limpio sin milisegundos
+        function startClock() {
             function updateClock() {
                 const now = new Date();
                 const h = String(now.getHours()).padStart(2, '0');
                 const m = String(now.getMinutes()).padStart(2, '0');
                 const s = String(now.getSeconds()).padStart(2, '0');
-                const ms = String(now.getMilliseconds()).padStart(3, '0');
                 
                 const clockEl = document.getElementById('clock');
                 if (clockEl) {
-                    clockEl.innerHTML = `${h}:${m}:${s}<span class="sync-ms">.${ms}</span>`;
+                    clockEl.innerText = `${h}:${m}:${s}`;
                 }
-                requestAnimationFrame(updateClock);
+                setTimeout(updateClock, 1000 - now.getMilliseconds());
             }
             updateClock();
         }
@@ -193,6 +203,7 @@
                     btnPause: document.getElementById('btnPause'),
                     btnStop: document.getElementById('btnStop'),
                     btnExport: document.getElementById('btnExport'),
+                    btnManual: document.getElementById('btnManual'),
                     logContainer: document.getElementById('logContainer'),
                     micDot: document.getElementById('micDot'),
                     statusText: document.getElementById('statusText')
@@ -225,6 +236,15 @@
                 this.ui.btnStop.addEventListener('click', () => this.stopSession());
                 this.ui.btnExport.addEventListener('click', () => this.exportRealExcel());
                 
+                // Botón para crear danza manualmente
+                this.ui.btnManual.addEventListener('click', () => {
+                    const now = new Date();
+                    const timeStr = String(now.getHours()).padStart(2, '0') + ':' + 
+                                    String(now.getMinutes()).padStart(2, '0') + ':' + 
+                                    String(now.getSeconds()).padStart(2, '0');
+                    this.processAnnouncedNumber("?", timeStr, "Registro Manual");
+                });
+
                 this.ui.logContainer.addEventListener('change', (e) => {
                     if (e.target.classList.contains('edit-num')) {
                         this.updateEntryNumber(e.target.dataset.id, e.target.value);
@@ -250,6 +270,10 @@
                 let nombre = "Sin nombre";
                 let obra = "Sin obra";
                 
+                if (num === "?") {
+                    return { nombre: "Esperando número...", obra: "Asigna el número correcto" };
+                }
+
                 if (this.originalData.length > 1 && this.excelHeaders.length > 0) {
                     const idxNombre = this.excelHeaders.findIndex(h => h.includes('nombre') || h.includes('participante'));
                     const idxObra = this.excelHeaders.findIndex(h => h.includes('obra'));
@@ -361,10 +385,11 @@
                 
                 const div = document.createElement('div');
                 div.className = 'log-card';
+                // El input ahora es de tipo text para aceptar la interrogación
                 div.innerHTML = `
                     <div class="log-num-box">
                         <span>Orden</span>
-                        <input type="number" class="edit-num" data-id="${id}" value="${num}">
+                        <input type="text" class="edit-num" data-id="${id}" value="${num}" onClick="this.select();">
                     </div>
                     <div class="log-details">
                         <span class="log-raw">🗣 "${rawText}"</span>
@@ -470,12 +495,12 @@
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Tiempos_XMP");
                 
-                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_XMP_v5.1.xlsx");
+                XLSX.writeFile(wb, "AuxiliorPhoto_Sync_XMP_v5.2.xlsx");
             }
         }
 
         window.onload = () => { 
-            startHighPrecisionClock();
+            startClock();
             const app = new TheaterLoggerV5(); 
         };
     </script>
