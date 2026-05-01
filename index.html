@@ -27,7 +27,6 @@
         .start { background: #e50914; color: white; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); }
         .stop { background: #333; color: white; border: 2px solid #e50914; }
         .export { background: #007bff; color: white; margin-top: 20px; }
-        .pause { background: #ff8800; color: white; box-shadow: 0 4px 15px rgba(255, 136, 0, 0.4); }
 
         #log { text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; height: 35vh; overflow-y: auto; margin: 15px auto; border: 1px solid #333; width: 100%; max-width: 600px; box-sizing: border-box; }
         .entry { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 10px; padding: 12px; border-radius: 6px; border-left: 4px solid #ffcc00; }
@@ -62,16 +61,16 @@
     </script>
 
     <div class="ref-container">
-        <span class="ref-title">1. Cargar Archivo de Excel/CSV (Orden del dia)</span>
+        <span class="ref-title">📁 1. Cargar Archivo de Excel/CSV (Orden del día)</span>
         <input type="file" id="fileUpload" accept=".xlsx, .xls, .csv, .ods">
         <div id="excel-preview"></div>
     </div>
 
     <div class="ref-container">
-        <span class="ref-title">2. Calibracion de Camara</span>
+        <span class="ref-title">📸 2. Calibración de Cámara</span>
         <div style="display: flex; gap: 10px; margin-bottom: 5px;">
             <div style="flex: 1;">
-                <small style="color:#888; display:block; margin-bottom:3px;">Hora EXIF de camara</small>
+                <small style="color:#888; display:block; margin-bottom:3px;">Hora EXIF de cámara</small>
                 <input type="time" step="1" id="timeExif" class="sheets-input">
             </div>
             <div style="flex: 1;">
@@ -81,15 +80,14 @@
         </div>
     </div>
 
-    <button id="startBtn" class="btn start">INICIAR GRABACION</button>
-    <button id="pauseBtn" class="btn pause" style="display:none;">PAUSAR ESCUCHA (musica sonando)</button>
-    <button id="stopBtn" class="btn stop" style="display:none;">DETENER</button>
+    <button id="startBtn" class="btn start">⏺ INICIAR GRABACIÓN</button>
+    <button id="stopBtn" class="btn stop" style="display:none;">⏹ DETENER</button>
 
     <div id="log">
-        <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...<br><small>(Baja el volumen de tu telefono a cero para evitar pitidos)</small></div>
+        <div style="text-align:center; color:#666; margin-top:20px;">Esperando anuncios...<br><small>(Baja el volumen de tu teléfono a cero para evitar pitidos)</small></div>
     </div>
 
-    <button id="exportBtn" class="btn export">DESCARGAR ARCHIVO FINAL</button>
+    <button id="exportBtn" class="btn export">⬇ DESCARGAR ARCHIVO FINAL</button>
 
     <script>
         let logEntries = [];
@@ -104,7 +102,7 @@
             const file = e.target.files[0];
             if (!file) return;
             loadedFileName = file.name;
-            const dotIndex = file.name.lastIndexOf('.');
+            var dotIndex = file.name.lastIndexOf('.');
             if (dotIndex > -1) {
                 loadedFileExtension = file.name.substring(dotIndex + 1).toLowerCase();
             }
@@ -119,8 +117,8 @@
                     // Extraer datos estructurados para buscar luego
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
                     if (jsonData.length > 0) {
-                        excelHeaders = jsonData[0];
-                        excelDataRows = jsonData.slice(1);
+                        excelHeaders = jsonData[0]; // La fila 1 (Ej: "Número", "Bailarina", "Obra")
+                        excelDataRows = jsonData.slice(1); // El resto de las filas
                     }
 
                     // Generar vista previa
@@ -132,10 +130,11 @@
             reader.readAsBinaryString(file);
         });
 
-        // --- FUNCION PARA BUSCAR EL NUMERO EN EL EXCEL ---
+        // --- FUNCIÓN PARA BUSCAR EL NÚMERO EN EL EXCEL ---
         window.buscarEnExcel = function(num) {
-            if (excelDataRows.length === 0) return `Numero: ${num}`;
+            if (excelDataRows.length === 0) return `Número: ${num}`; // Si no hay excel cargado
 
+            // Buscar la fila donde la primera columna coincida con el número hablado
             const fila = excelDataRows.find(row => String(row[0]).trim() === String(num).trim());
 
             if (fila) {
@@ -145,19 +144,20 @@
                         detalles.push(`${excelHeaders[i]}: ${fila[i]}`);
                     }
                 }
-                return detalles.join(", ");
+                return detalles.join(", "); // Ej: "Número: 21, Bailarina: Pepa, Obra: Las maravillas"
             } else {
-                return `Numero: ${num} (No encontrado en Excel)`;
+                return `Número: ${num} (No encontrado en Excel)`;
             }
         };
 
-        // --- EDICION EN VIVO ---
+        // --- EDICIÓN EN VIVO ---
         window.actualizarNumero = function(id, nuevoValor) {
             const entry = logEntries.find(e => e.id === id);
             if(entry) {
                 entry.num = nuevoValor;
-                entry.fullData = window.buscarEnExcel(nuevoValor);
+                entry.fullData = window.buscarEnExcel(nuevoValor); // Re-calcula la fila completa
 
+                // Actualiza visualmente el texto verde
                 const spanDatos = document.getElementById('data-' + id);
                 if(spanDatos) spanDatos.innerText = entry.fullData;
             }
@@ -180,7 +180,6 @@
             recognition.lang = 'es-PY';
 
             recognition.onresult = function(event) {
-                if (isPaused) return;
                 const result = event.results[event.results.length - 1][0].transcript;
                 const d = new Date();
                 const time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
@@ -191,7 +190,7 @@
 
                     numbers.forEach(num => {
                         const entryId = Date.now() + Math.floor(Math.random() * 1000);
-                        const datosCompletos = window.buscarEnExcel(num);
+                        const datosCompletos = window.buscarEnExcel(num); // Cruce automático de datos
 
                         logEntries.push({ id: entryId, time: time, num: num, raw: result, fullData: datosCompletos });
 
@@ -207,7 +206,7 @@
                                     <span class="matched-data" id="data-${entryId}">${datosCompletos}</span>
                                 </div>
                             </div>
-                            <button class="delete-btn" onclick="eliminarRegistro(${entryId})">x</button>
+                            <button class="delete-btn" onclick="eliminarRegistro(${entryId})">✖</button>
                         `;
                         logDiv.prepend(div);
                     });
@@ -215,47 +214,28 @@
             };
 
             let isRecording = false;
-            let isPaused = false;
-            recognition.onend = function() { if(isRecording && !isPaused) { try { recognition.start(); } catch(e) {} } };
+            recognition.onend = function() { if(isRecording) { try { recognition.start(); } catch(e) {} } };
 
             document.getElementById('startBtn').onclick = function() {
                 try {
                     recognition.start();
                     isRecording = true;
-                    isPaused = false;
                     document.getElementById('startBtn').style.display = 'none';
                     document.getElementById('stopBtn').style.display = 'block';
-                    document.getElementById('pauseBtn').style.display = 'block';
                 } catch(e) { alert("Error. Recuerda usar Chrome y dar permisos."); }
-            };
-
-            document.getElementById('pauseBtn').onclick = function() {
-                if (!isPaused) {
-                    isPaused = true;
-                    try { recognition.stop(); } catch(e) {}
-                    document.getElementById('pauseBtn').innerText = 'REANUDAR ESCUCHA';
-                    document.getElementById('pauseBtn').style.background = '#27ae60';
-                } else {
-                    isPaused = false;
-                    try { recognition.start(); } catch(e) {}
-                    document.getElementById('pauseBtn').innerText = 'PAUSAR ESCUCHA (musica sonando)';
-                    document.getElementById('pauseBtn').style.background = '#ff8800';
-                }
             };
 
             document.getElementById('stopBtn').onclick = function() {
                 recognition.stop();
                 isRecording = false;
-                isPaused = false;
                 document.getElementById('startBtn').style.display = 'block';
                 document.getElementById('stopBtn').style.display = 'none';
-                document.getElementById('pauseBtn').style.display = 'none';
             };
         } else {
             document.getElementById('startBtn').onclick = function() { alert("Tu navegador no soporta voz. Usa Chrome."); };
         }
 
-        // --- CALCULOS Y EXPORTACION ---
+        // --- CÁLCULOS Y EXPORTACIÓN ---
         function calcularDesfase(exifStr, appStr) {
             if(!exifStr || !appStr) return 0;
             let dExif = new Date("1970-01-01T" + exifStr + "Z");
@@ -272,65 +252,71 @@
                    String(d.getUTCSeconds()).padStart(2, '0');
         }
 
+        function fechaCompletaConHora(horaStr) {
+            var hoy = new Date();
+            var anio = hoy.getFullYear();
+            var mes = String(hoy.getMonth() + 1).padStart(2, '0');
+            var dia = String(hoy.getDate()).padStart(2, '0');
+            return dia + '/' + mes + '/' + anio + ' ' + horaStr;
+        }
+
+        function fechaCompletaCamara(horaStr, desfaseMs) {
+            var horaCamara = aplicarDesfase(horaStr, desfaseMs);
+            return fechaCompletaConHora(horaCamara);
+        }
+
         document.getElementById('exportBtn').onclick = function() {
             const timeExif = document.getElementById('timeExif').value;
             const timeApp = document.getElementById('timeApp').value;
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
-            // Ordenar log cronologicamente para calcular inicio/fin de cada danza
-            let logOrdenado = logEntries.slice().sort(function(a, b) {
+            // Ordenar log cronologicamente para calcular inicio/fin
+            var logOrdenado = logEntries.slice().sort(function(a, b) {
                 return a.time.localeCompare(b.time);
             });
 
             // Calcular inicio y fin de cada danza
-            // Inicio = cuando se anuncia ese numero
-            // Fin = cuando se anuncia el SIGUIENTE numero (inicio de la siguiente danza)
-            let logConRangos = [];
-            for (let i = 0; i < logOrdenado.length; i++) {
-                let e = logOrdenado[i];
-                let inicioApp = e.time;
-                let finApp = (i + 1 < logOrdenado.length) ? logOrdenado[i + 1].time : '';
-                let inicioCamara = aplicarDesfase(inicioApp, desfaseMs);
-                let finCamara = finApp ? aplicarDesfase(finApp, desfaseMs) : '';
+            var logConRangos = [];
+            for (var i = 0; i < logOrdenado.length; i++) {
+                var e = logOrdenado[i];
+                var finApp = (i + 1 < logOrdenado.length) ? logOrdenado[i + 1].time : '';
 
                 logConRangos.push({
                     num: String(e.num).trim(),
-                    inicioApp: inicioApp,
-                    finApp: finApp,
-                    inicioCamara: inicioCamara,
-                    finCamara: finCamara,
+                    inicioApp: fechaCompletaConHora(e.time),
+                    finApp: finApp ? fechaCompletaConHora(finApp) : '',
+                    inicioCamara: fechaCompletaCamara(e.time, desfaseMs),
+                    finCamara: finApp ? fechaCompletaCamara(finApp, desfaseMs) : '',
                     transcripcion: e.raw
                 });
             }
 
-            // Columnas nuevas generadas por el programa
-            const newCols = ['Inicio_App', 'Fin_App', 'Inicio_Camara', 'Fin_Camara', 'Transcripcion'];
+            // Columnas nuevas
+            var newCols = ['Inicio_App', 'Fin_App', 'Inicio_Camara', 'Fin_Camara', 'Transcripcion'];
 
-            // Crear mapa de numero -> entradas con rangos
-            let logPorNumero = {};
+            // Mapa numero -> rangos
+            var logPorNumero = {};
             logConRangos.forEach(function(lr) {
                 if (!logPorNumero[lr.num]) logPorNumero[lr.num] = [];
                 logPorNumero[lr.num].push(lr);
             });
 
             if (excelHeaders.length > 0 && excelDataRows.length > 0) {
-                // --- EXPORTAR CON LA ESTRUCTURA ORIGINAL + COLUMNAS NUEVAS ---
-                let outputData = [];
+                // --- CON ARCHIVO CARGADO: misma estructura + columnas nuevas ---
+                var outputData = [];
 
-                // Header: columnas originales + columnas nuevas
-                let headerRow = excelHeaders.slice();
+                var headerRow = excelHeaders.slice();
                 newCols.forEach(function(c) { headerRow.push(c); });
                 outputData.push(headerRow);
 
-                // Filas: cada fila original + datos del log si existen
                 excelDataRows.forEach(function(row) {
-                    let fila = [];
-                    for (let i = 0; i < excelHeaders.length; i++) {
-                        fila.push(row[i] !== undefined ? row[i] : "");
+                    var fila = [];
+                    for (var j = 0; j < excelHeaders.length; j++) {
+                        fila.push(row[j] !== undefined ? row[j] : "");
                     }
-                    let numKey = String(row[0]).trim();
+                    var numKey = String(row[0]).trim();
                     if (logPorNumero[numKey] && logPorNumero[numKey].length > 0) {
-                        let lr = logPorNumero[numKey].shift();
+                        var lr = logPorNumero[numKey].shift();
                         fila.push(lr.inicioApp);
                         fila.push(lr.finApp);
                         fila.push(lr.inicioCamara);
@@ -342,12 +328,12 @@
                     outputData.push(fila);
                 });
 
-                // Agregar entradas del log que NO coincidieron con ninguna fila del excel
+                // Numeros detectados que no estaban en el excel
                 Object.keys(logPorNumero).forEach(function(numKey) {
                     logPorNumero[numKey].forEach(function(lr) {
-                        let fila = [];
-                        for (let i = 0; i < excelHeaders.length; i++) {
-                            if (i === 0) fila.push(numKey);
+                        var fila = [];
+                        for (var j = 0; j < excelHeaders.length; j++) {
+                            if (j === 0) fila.push(numKey);
                             else fila.push("");
                         }
                         fila.push(lr.inicioApp);
@@ -359,32 +345,28 @@
                     });
                 });
 
-                // Exportar en el mismo formato que el archivo original
-                let ws = XLSX.utils.aoa_to_sheet(outputData);
-                let wb = XLSX.utils.book_new();
+                var ws = XLSX.utils.aoa_to_sheet(outputData);
+                var wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "PodiumLog");
 
-                let exportExt = loadedFileExtension;
-                let bookType = 'xlsx';
-                if (exportExt === 'csv') bookType = 'csv';
-                else if (exportExt === 'xls') bookType = 'xls';
-                else if (exportExt === 'ods') bookType = 'ods';
-                else bookType = 'xlsx';
+                var bookType = 'xlsx';
+                if (loadedFileExtension === 'csv') bookType = 'csv';
+                else if (loadedFileExtension === 'xls') bookType = 'xls';
+                else if (loadedFileExtension === 'ods') bookType = 'ods';
 
-                let baseName = loadedFileName.substring(0, loadedFileName.lastIndexOf('.')) || loadedFileName;
-                let outputFileName = baseName + '_PodiumLog.' + (bookType === 'xls' ? 'xls' : exportExt);
+                var baseName = loadedFileName.substring(0, loadedFileName.lastIndexOf('.')) || loadedFileName;
+                var outputFileName = baseName + '_PodiumLog.' + loadedFileExtension;
 
                 XLSX.writeFile(wb, outputFileName, { bookType: bookType });
 
             } else {
-                // --- SIN ARCHIVO CARGADO: exportar solo los datos del log como CSV ---
+                // --- SIN ARCHIVO CARGADO: CSV simple como antes ---
                 let csvContent = "data:text/csv;charset=utf-8,Numero,Datos_Completos,Inicio_App,Fin_App,Inicio_Camara,Fin_Camara,Transcripcion\n";
 
                 logConRangos.forEach(function(lr) {
-                    let entry = logEntries.find(function(e) { return String(e.num).trim() === lr.num && e.time === lr.inicioApp; });
-                    let datosSeguros = entry ? entry.fullData.replace(/"/g, '""') : '';
-
-                    csvContent += lr.num + ',"' + datosSeguros + '",' + lr.inicioApp + ',' + lr.finApp + ',' + lr.inicioCamara + ',' + lr.finCamara + ',"' + lr.transcripcion + '"\n';
+                    var entry = logEntries.find(function(e) { return String(e.num).trim() === lr.num && fechaCompletaConHora(e.time) === lr.inicioApp; });
+                    var datos = entry ? entry.fullData.replace(/"/g, '""') : '';
+                    csvContent += lr.num + ',"' + datos + '","' + lr.inicioApp + '","' + lr.finApp + '","' + lr.inicioCamara + '","' + lr.finCamara + '","' + lr.transcripcion + '"\n';
                 });
 
                 const link = document.createElement("a");
