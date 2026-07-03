@@ -70,7 +70,7 @@
                 <input type="text" id="contestName" class="lr-input" placeholder="Ej: Alta Danza" onchange="guardarBackup()">
             </div>
             <div class="lr-col">
-                <small style="color:#888; display:block; margin-bottom:4px;">Enlace Google Sheets (Opcional)</small>
+                <small style="color:#888; display:block; margin-bottom:4px;">Enlace Google Sheets (Solo visual)</small>
                 <input type="url" id="sheetUrl" class="lr-input" placeholder="https://docs.google.com/..." onchange="guardarBackup()">
             </div>
         </div>
@@ -251,9 +251,11 @@
             if (fila) {
                 let detalles = [];
                 for (let i = 0; i < excelHeaders.length; i++) {
-                    if (excelHeaders[i] && fila[i] !== "") detalles.push(`${excelHeaders[i]}: ${fila[i]}`);
+                    if (excelHeaders[i] !== undefined && fila[i] !== undefined && fila[i] !== "") {
+                        detalles.push(`${excelHeaders[i]}: ${fila[i]}`);
+                    }
                 }
-                return detalles.join(", "); 
+                return detalles.join(", ") || `Número: ${num}`; 
             } else {
                 return `Número: ${num} (Falta en DB)`;
             }
@@ -340,7 +342,7 @@
             };
         }
 
-        // --- EXPORTACIÓN ---
+        // --- EXPORTACIÓN ESTRICTA ---
         function calcularDesfase(exifStr, appStr) {
             if(!exifStr || !appStr) return 0;
             let dExif = new Date("1970-01-01T" + exifStr + "Z");
@@ -349,7 +351,7 @@
         }
 
         function aplicarDesfase(horaStr, desfaseMs) {
-            if(desfaseMs === 0) return horaStr;
+            if(!horaStr || desfaseMs === 0) return horaStr || "";
             let d = new Date("1970-01-01T" + horaStr + "Z");
             d.setTime(d.getTime() + desfaseMs);
             return String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0') + ':' + String(d.getUTCSeconds()).padStart(2, '0');
@@ -370,14 +372,19 @@
         document.getElementById('exportBtn').onclick = function() {
             const timeExif = document.getElementById('timeExif').value;
             const timeApp = document.getElementById('timeApp').value;
-            const linkSheets = document.getElementById('sheetUrl').value || "N/A";
             const desfaseMs = calcularDesfase(timeExif, timeApp);
 
-            let csvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion,Link_Sheets\n";
+            // ESTRUCTURA ESTRICTA DE 5 COLUMNAS PARA NO ROMPER EL SCRIPT DE PYTHON
+            let csvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion\n";
+            
             logEntries.forEach(e => { 
-                let tiempoCamara = aplicarDesfase(e.time, desfaseMs);
-                let datosSeguros = e.fullData.replace(/"/g, '""'); 
-                csvContent += `${e.time},${tiempoCamara},${e.num},"${datosSeguros}","${e.raw}","${linkSheets}"\n`; 
+                let tiempoAppSeguro = e.time || "";
+                let tiempoCamaraSeguro = aplicarDesfase(e.time, desfaseMs);
+                let numSeguro = e.num || "";
+                let datosSeguros = (e.fullData || "").replace(/"/g, '""'); 
+                let rawSeguro = (e.raw || "").replace(/"/g, '""');
+                
+                csvContent += `${tiempoAppSeguro},${tiempoCamaraSeguro},${numSeguro},"${datosSeguros}","${rawSeguro}"\n`; 
             });
             
             const link = document.createElement("a");
@@ -387,7 +394,7 @@
             link.click();
         };
 
-        // --- RESCATE ---
+        // --- RESCATE (RE-PROCESAMIENTO) ---
         document.getElementById('lateCsvUpload').addEventListener('change', function(e) {
             if(excelDataRows.length === 0) {
                 alert("Primero cargue el archivo Excel en el Paso 1.");
@@ -403,22 +410,23 @@
                 const data = evt.target.result;
                 const workbook = XLSX.read(data, {type: 'binary'});
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: ""});
-                const linkSheets = document.getElementById('sheetUrl').value || "N/A";
                 
-                let newCsvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion,Link_Sheets\n";
+                // MANTIENE LA ESTRUCTURA ESTRICTA DE 5 COLUMNAS
+                let newCsvContent = "data:text/csv;charset=utf-8,Tiempo_App,Tiempo_Camara,Numero,Datos_Completos,Transcripcion\n";
                 
                 for(let i=1; i<json.length; i++) {
                     let row = json[i];
                     if(row.length < 3) continue; 
                     
-                    let tApp = row[0];
-                    let tCam = row[1];
-                    let num = row[2];
+                    let tApp = row[0] || "";
+                    let tCam = row[1] || "";
+                    let num = row[2] || "";
                     let trans = row[4] || "";
-                    let link = row[5] || linkSheets;
                     
-                    let nuevosDatos = window.buscarEnExcel(num).replace(/"/g, '""');
-                    newCsvContent += `${tApp},${tCam},${num},"${nuevosDatos}","${trans}","${link}"\n`;
+                    let nuevosDatos = window.buscarEnExcel(num);
+                    nuevosDatos = (nuevosDatos || "").replace(/"/g, '""');
+                    
+                    newCsvContent += `${tApp},${tCam},${num},"${nuevosDatos}","${trans}"\n`;
                 }
                 
                 const nombreBase = obtenerNombreArchivo().replace(".csv", "");
